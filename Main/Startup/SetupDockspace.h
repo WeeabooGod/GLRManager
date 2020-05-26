@@ -1,3 +1,4 @@
+#pragma once
 #include "../../Libraries/IMGui/imgui.h"
 #include "../../Libraries/IMGui/imgui_internal.h"
 

@@ -1,11 +1,12 @@
+//Entrance includes, plus a define for CURL
 #include "Startup/SetupImGuiGL.h"
 #include "Startup/SetupDockspace.h"
+
 
 //Pretty much a list of all headers will be in helpers
 #include "Tools/Helpers.h"
 
-//Curl
-#include <curl/curl.h>
+#include "curl/curl.h"
 
 using namespace std;
 
@@ -44,9 +45,22 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     ProgramName = cJSON_GetObjectItem(jConfig, "ProgramName")->valuestring;
     GreenlumaPath = cJSON_GetObjectItem(jConfig, "GreenlumaPath")->valuestring;
 
-	
     //Setup the GL
     ImguiOpenGL GLRManager(ProgramName);
+
+
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.com");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
 	
     // Main loop
     while (!glfwWindowShouldClose(GLRManager.GetWindow()))
@@ -120,21 +134,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
         //End Dock-space
         EndDockspace();
-
-    	//Curl test
-        CURL* curl;
-        CURLcode res;
-        string readBuffer;
-
-        curl = curl_easy_init();
-    	if (curl)
-    	{
-            curl_easy_setopt(curl, CURLOPT_URL, "https://store.steampowered.com/api/appdetails?appids=996740");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-            res = curl_easy_perform(curl);
-            curl_easy_cleanup(curl);
-    	}
 
         //Finish Doing things and render to Screen
         GLRManager.RenderImGui();

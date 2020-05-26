@@ -10,6 +10,7 @@ workspace "GLRManager"
 
 ------------------------------------------------ GLRManager Project 
 project "GLRManager"
+	ignoredefaultlibraries { "MSVCRT", "LIBCMTD" }
     location    "GLRManager"
     dependson   { "Libraries" }
     kind        "WindowedApp"
@@ -34,11 +35,35 @@ project "GLRManager"
 		"Main/Config/**",
     }
 
-    links {
-		"Libraries",
-        "opengl32",
-		"glfw3",
-    }
+	filter "configurations:Debug"
+        defines         { "_DEBUG", "CURL_STATICLIB" }
+        symbols         "on"
+		links {
+			"Libraries",
+			"opengl32",
+			"glfw3",
+			"Normaliz",
+			"Ws2_32",
+			"Wldap32",
+			"Crypt32",
+			"advapi32",
+			"libcurl_a_debug",
+		}
+		
+    filter "configurations:Release"
+        defines         { "NDEBUG", "CURL_STATICLIB" }
+        optimize        "Full"
+		links {
+			"Libraries",
+			"opengl32",
+			"glfw3",
+			"Normaliz",
+			"Ws2_32",
+			"Wldap32",
+			"Crypt32",
+			"advapi32",
+			"libcurl_a",
+		}
 ------------------------------------------------ Libraries Project
 project "Libraries"
     location    "GLRManager/Libraries"
@@ -48,12 +73,10 @@ project "Libraries"
     includedirs {
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
-		"Libraries/cUrl/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
-		"Libraries/cUrl/lib",
 	}
 
     files {
@@ -61,5 +84,5 @@ project "Libraries"
         "Libraries/IMGui/**",
         "Libraries/cJSON/cJSON.c",
         "Libraries/cJSON/cJSON.h",
-		"Libraries/cUrl/*",
+		"Libraries/cUrl/**",
     }
