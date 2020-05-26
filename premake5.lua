@@ -19,10 +19,12 @@ project "GLRManager"
     includedirs {
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
+		"Libraries/cUrl/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
+		"Libraries/cUrl/lib",
 	}
 
     files {
@@ -46,10 +48,12 @@ project "Libraries"
     includedirs {
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
+		"Libraries/cUrl/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
+		"Libraries/cUrl/lib",
 	}
 
     files {
@@ -57,4 +61,5 @@ project "Libraries"
         "Libraries/IMGui/**",
         "Libraries/cJSON/cJSON.c",
         "Libraries/cJSON/cJSON.h",
+		"Libraries/cUrl/*",
     }

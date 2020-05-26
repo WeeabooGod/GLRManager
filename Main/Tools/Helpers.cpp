@@ -126,5 +126,3 @@ void WriteToConfig(cJSON* jConfig, const std::string path)
 
 	ConfigFile << cJSON_Print(jConfig);
 }
-
-

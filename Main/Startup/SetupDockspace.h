@@ -10,7 +10,7 @@ inline void SetupDockspace()
 
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
     // because it would be confusing to have two docking targets within each others.
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking; //ImGuiWindowFlags_MenuBar 
     if (opt_fullscreen)
     {
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -48,7 +48,6 @@ inline void SetupDockspace()
 
         ImGui::DockBuilderDockWindow("Game Search", DockLeft);
         ImGui::DockBuilderDockWindow("Profiles", DockRight);
-
 
         // Disable tab bar for custom toolbar so that it remains docked.
         ImGuiDockNode* node = ImGui::DockBuilderGetNode(DockLeft);
