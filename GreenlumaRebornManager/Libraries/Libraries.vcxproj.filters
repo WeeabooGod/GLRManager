@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="IMGui">
+      <UniqueIdentifier>{A073530D-0C88-7BBE-D509-1F1E41DD77EF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL">
+      <UniqueIdentifier>{8A864AC8-7628-759E-5FE3-88F24B24FCEE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GL">
+      <UniqueIdentifier>{AC43D1A5-18AE-851C-61EC-36C2CD956371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GL\Include">
+      <UniqueIdentifier>{FFBE4517-6BD5-43AD-B44C-CFCE20A21435}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GL\Include\GL">
+      <UniqueIdentifier>{01A4E1F5-ED32-6BBF-9651-7FBA82BF7B65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GL\Include\KHR">
+      <UniqueIdentifier>{F33416B2-5FA1-D1AC-2895-690A94C0F314}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GLFW">
+      <UniqueIdentifier>{09E8305F-759D-A954-FE91-A32B6A46A058}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GLFW\include">
+      <UniqueIdentifier>{7C088668-E869-6376-71D7-A928DD379A35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GLFW\include\GLFW">
+      <UniqueIdentifier>{3B71457A-2796-94FA-50E1-798A3C659318}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\GLFW\lib-vc2019">
+      <UniqueIdentifier>{81A86FD1-6DA2-9823-560F-2F3442A8FE8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cJSON">
+      <UniqueIdentifier>{A279280F-0E8E-50C0-D70F-F41F43E34CF1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Libraries\IMGui\imconfig.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imgui.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imgui_impl_glfw.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imgui_impl_opengl3.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imgui_internal.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imstb_rectpack.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imstb_textedit.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\IMGui\imstb_truetype.h">
+      <Filter>IMGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\OpenGL\GL\Include\GL\gl3w.h">
+      <Filter>OpenGL\GL\Include\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\OpenGL\GL\Include\GL\glcorearb.h">
+      <Filter>OpenGL\GL\Include\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\OpenGL\GL\Include\KHR\khrplatform.h">
+      <Filter>OpenGL\GL\Include\KHR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\OpenGL\GLFW\include\GLFW\glfw3.h">
+      <Filter>OpenGL\GLFW\include\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\OpenGL\GLFW\include\GLFW\glfw3native.h">
+      <Filter>OpenGL\GLFW\include\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libraries\cJSON\cJSON.h">
+      <Filter>cJSON</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Libraries\IMGui\imgui.cpp">
+      <Filter>IMGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\IMGui\imgui_demo.cpp">
+      <Filter>IMGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\IMGui\imgui_draw.cpp">
+      <Filter>IMGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\IMGui\imgui_impl_glfw.cpp">
+      <Filter>IMGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\IMGui\imgui_impl_opengl3.cpp">
+      <Filter>IMGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\IMGui\imgui_widgets.cpp">
+      <Filter>IMGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\OpenGL\GL\Include\GL\gl3w.c">
+      <Filter>OpenGL\GL\Include\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libraries\cJSON\cJSON.c">
+      <Filter>cJSON</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Libraries\OpenGL\GLFW\lib-vc2019\glfw3.lib">
+      <Filter>OpenGL\GLFW\lib-vc2019</Filter>
+    </None>
+  </ItemGroup>
+</Project>
