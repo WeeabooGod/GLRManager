@@ -37,7 +37,7 @@ project "GLRManager"
     }
 
 	filter "configurations:Debug"
-        defines         { "_DEBUG", "CURL_STATICLIB" }
+        defines         { "_DEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS" }
         symbols         "on"
 		links {
 			"Libraries",
@@ -52,7 +52,7 @@ project "GLRManager"
 		}
 		
     filter "configurations:Release"
-        defines         { "NDEBUG", "CURL_STATICLIB" }
+        defines         { "NDEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS" }
         optimize        "Full"
 		links {
 			"Libraries",

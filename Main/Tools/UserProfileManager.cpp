@@ -2,6 +2,30 @@
 #include <algorithm>
 
 #include "Helpers.h"
+#include "curl/curl.h"
+
+
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <stdlib.h>
+
+std::string serializeTimePoint( const std::chrono::system_clock::time_point& time, const std::string& format)
+{
+    std::time_t tt = std::chrono::system_clock::to_time_t(time);
+    std::tm tm = *std::localtime(&tt);
+    std::stringstream ss;
+    ss << std::put_time( &tm, format.c_str() );
+    return ss.str();
+}
+
+//Used to get a buffer from a website
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+{
+    static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
+    return size * nmemb;
+}
+
 UserProfile::UserProfile()
 {
 	//Init our profile, therefore we need to get the Local Appdata Location, and if everything is valid, do stuff
@@ -10,30 +34,38 @@ UserProfile::UserProfile()
     if (_dupenv_s(&buf, &sz, "LOCALAPPDATA") == 0 && buf != nullptr)
     {
         //Assing our Buffer to the string, then free the buffer
-        UserGLRPath = buf;
+        UserAppLocalPath = buf;
         free(buf);
     }
 
     //Replace the double backslash with forward slashes and add our program File to the end of it
-    replace(UserGLRPath.begin(),UserGLRPath.end(), '\\', '/');
-    UserGLRPath += "/GLRAppManager/";
+    replace(UserAppLocalPath.begin(), UserAppLocalPath.end(), '\\', '/');
+    UserAppLocalPath += "/GLRAppManager/";
 
 	//Does the path even exist? If it doesn't, create it using _mkdir
-	if (!DoesPathExist(UserGLRPath))
+	if (!DoesPathExist(UserAppLocalPath))
 	{
-        _mkdir(UserGLRPath.c_str());
+        _mkdir(UserAppLocalPath.c_str());
 	}
 
 	//Does Profiles Directory Exist
-    if (!DoesPathExist(UserGLRPath + "Profiles/"))
+    if (!DoesPathExist(UserAppLocalPath + "Profiles/"))
     {
-        _mkdir((UserGLRPath + "Profiles/").c_str());
+        _mkdir((UserAppLocalPath + "Profiles/").c_str());
     }
 
+	//Does the MasterAppList Directory Exist
+	if (!DoesPathExist(UserAppLocalPath + "MasterAppList/"))
+	{
+		_mkdir(((UserAppLocalPath + "MasterAppList/").c_str()));
+	}
+	
+
 	//Does a Config file exist? If not create it with our default variables
-    if (!DoesFileExist(UserGLRPath + "Config.json"))
+    if (!DoesFileExist(UserAppLocalPath + "Config.json"))
     {
-        std::ofstream CreatedConfigFile(UserGLRPath + "Config.json");
+    	//create file, parse
+        std::ofstream CreatedConfigFile(UserAppLocalPath + "Config.json");
 
         //Json Object, our "File" so to speak
         cJSON* jTempConfig = cJSON_CreateObject();
@@ -42,11 +74,13 @@ UserProfile::UserProfile()
         jProgramName = cJSON_CreateString(DefaultProgramName.c_str());
         jProgramVersion = cJSON_CreateString(DefaultProgramVersion.c_str());
         jGreenlumaPath = cJSON_CreateString(DefaultGreenlumaPath.c_str());
+        jLastDownloadedList = cJSON_CreateString(DefaultLastDownloadedList.c_str());
 
         //Add variables into our "file"
         cJSON_AddItemToObject(jTempConfig, "ProgramName", jProgramName);
         cJSON_AddItemToObject(jTempConfig, "Version", jProgramVersion);
         cJSON_AddItemToObject(jTempConfig, "GreenlumaPath", jGreenlumaPath);
+        cJSON_AddItemToObject(jTempConfig, "LastDownloadedList", jLastDownloadedList);
 
         //Put raw data into our file now
         CreatedConfigFile << cJSON_Print(jTempConfig);
@@ -60,17 +94,140 @@ UserProfile::UserProfile()
     else
     {
     	//Load File and Parse
-        std::ifstream file(UserGLRPath + "Config.json");
-        std::string FileContents;
-        FileContents.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
-
-        jConfig = cJSON_Parse(FileContents.c_str());
+        jConfig = GetJSONFile(UserAppLocalPath + "Config.json");
 
     	//Even if it did exist originally, is it correct and/or up to date?
         VerifyConfig();
     }
+
+	//Check for the MasterAppList and download it if we need to
+	StartupAPPIDList();
+}
+
+cJSON* UserProfile::GetJSONFile(std::string Path)
+{
+	//Load File and Parse
+    std::ifstream file(Path);
+    std::string FileContents;
+    FileContents.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+    file.close();
+    
+    //Return a parsed CJSON*
+    return cJSON_Parse(FileContents.c_str());
 }
 
 void UserProfile::VerifyConfig()
 {
+}
+
+void UserProfile::WriteToConfig()
+{
+	//Save what ever we have made modifications to into our json
+	std::ofstream ConfigFile(UserAppLocalPath + "Config.json");
+	ConfigFile << cJSON_Print(jConfig);
+	ConfigFile.close();
+}
+
+std::string UserProfile::GetProgramName()
+{
+    return cJSON_GetObjectItem(jConfig, "ProgramName")->valuestring;
+}
+
+std::string UserProfile::GetGreenlumaPath()
+{
+    return cJSON_GetObjectItem(jConfig, "GreenlumaPath")->valuestring;
+}
+
+void UserProfile::SetGreenlumaPath(std::string Path)
+{
+	replace(Path.begin(), Path.end(), '\\', '/');
+	cJSON_ReplaceItemInObject(jConfig, "GreenlumaPath", cJSON_CreateString(Path.c_str()));
+}
+
+void UserProfile::StartupAPPIDList()
+{
+	//First, lets check if the file exist, if it does/does not download the list and put it into our reference cJSON
+	if (!DoesFileExist(UserAppLocalPath + "MasterAppList/AppListV2.json" ))
+	{
+		//Just... create the file
+		std::ofstream CreatedAppListFile(UserAppLocalPath + "MasterAppList/AppListV2.json");
+		CreatedAppListFile.close();
+		
+		jMasterSteamAPPList = DownloadSteamAPPIDList();
+	}
+    else
+    {
+    	bool DidWeDownload = false;
+    	
+	    //It exist, but is it time to download a new one?
+    	std::chrono::system_clock::time_point input = std::chrono::system_clock::now();
+    	std::string CurrentTime = serializeTimePoint(input, "%Y-%m-%d %H:%M:%S");
+    	std::string PastTime = cJSON_GetObjectItem(jConfig, "LastDownloadedList")->valuestring;
+
+    	std::string CurrentTimeDay = (serializeTimePoint(input, "%Y-%m-%d %H:%M:%S")).substr(8,2);
+    	std::string PastTimeDay = static_cast<std::string>(cJSON_GetObjectItem(jConfig, "LastDownloadedList")->valuestring).substr(8, 2);
+    	
+    	//Is the current day greater than the past day? (Probably a better way to do this but fuck it)
+        if (CurrentTime.substr(8,2) > PastTime.substr(8, 2))
+        {
+	        jMasterSteamAPPList = DownloadSteamAPPIDList();
+        	DidWeDownload = true;
+        }
+        else if (CurrentTime.substr(8,2) == PastTime.substr(8, 2))
+        {
+        	//Might be same day different month
+	        if ((CurrentTime.substr(5,2) > PastTime.substr(5, 2)))
+	        {
+		        jMasterSteamAPPList = DownloadSteamAPPIDList();
+	        	DidWeDownload = true;
+	        }
+            else if (CurrentTime.substr(5,2) == PastTime.substr(5, 2))
+        	{
+            	//Okay same day, same month, is it the same year?
+            	if (CurrentTime.substr(0, 4) != PastTime.substr(0, 4))
+            	{
+            		//If the dates do not equal at this point, just again download the list
+            		jMasterSteamAPPList = DownloadSteamAPPIDList();
+            		DidWeDownload = true;
+            	}
+        	}
+        }
+
+    	if (DidWeDownload == false)
+    	{
+    		//Load File and Parse
+		    jMasterSteamAPPList = GetJSONFile(UserAppLocalPath + "MasterAppList/AppListV2.json");
+    	}
+    }
+}
+
+cJSON* UserProfile::DownloadSteamAPPIDList()
+{
+    std::ofstream CreatedAppListFile(UserAppLocalPath + "MasterAppList/AppListV2.json");
+
+	//Curl the GetAppList from steam, parse it into readbuffer, then put it all into a json file
+	CURL* curl;
+	CURLcode res;
+	std::string readBuffer;
+	curl = curl_easy_init();
+    if (curl) 
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, "https://api.steampowered.com/ISteamApps/GetAppList/v2/");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    	res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
+	
+    cJSON* jTempList = cJSON_Parse(readBuffer.c_str());
+	CreatedAppListFile << cJSON_Print(jTempList);
+	CreatedAppListFile.close();
+
+	//Write the time into our config, then call the write to config so our state can be saved even if the program closes prematurely.
+	std::chrono::system_clock::time_point input = std::chrono::system_clock::now();
+	cJSON_ReplaceItemInObject(jConfig, "LastDownloadedList", cJSON_CreateString(serializeTimePoint(input, "%Y-%m-%d %H:%M:%S").c_str()));
+
+	WriteToConfig();
+
+	return jTempList;
 }

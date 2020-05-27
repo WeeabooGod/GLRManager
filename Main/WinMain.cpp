@@ -5,62 +5,19 @@
 
 //Pretty much a list of all headers will be in helpers
 #include "Tools/Helpers.h"
-
+#include "Tools/UserProfileManager.h"
 #include "curl/curl.h"
 
 using namespace std;
 
-//Used to get a buffer from a website
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
-{
-    static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
-    return size * nmemb;
-}
-
-
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	//Load our main directory where we will be getting data from
-    string AppDataPath = InitDirectories();
-    string ConfigPath = AppDataPath + "Config.json";
+	//Create the programs overall profile
+	UserProfile GLRProfile;
 
-    ifstream file(ConfigPath);
-    string FileContents;
-	FileContents.assign(istreambuf_iterator<char>(file),istreambuf_iterator<char>());
-
-	//Parse it as a Json file
-    cJSON* jConfig = cJSON_Parse(FileContents.c_str());
-
-	//A copy of our variables, which we will get from our config
-    string ProgramName;
-    string GreenlumaPath;
-	
-	//If our Json file is null we need to error handle
-	if (!jConfig)
-	{
-        //TODO: Error handling
-	}
-
-	//fill our variable references
-    ProgramName = cJSON_GetObjectItem(jConfig, "ProgramName")->valuestring;
-    GreenlumaPath = cJSON_GetObjectItem(jConfig, "GreenlumaPath")->valuestring;
 
     //Setup the GL
-    ImguiOpenGL GLRManager(ProgramName);
-
-
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
-
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.com");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-    }
+    ImguiOpenGL GLRManager(GLRProfile.GetProgramName());
 	
     // Main loop
     while (!glfwWindowShouldClose(GLRManager.GetWindow()))
@@ -74,7 +31,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         GLRManager.SetupImGuiFrame();
 
     	//Ask for Path if there is no path
-        if (GreenlumaPath.empty())
+        if (GLRProfile.GetGreenlumaPath().empty())
         {
             ImGui::OpenPopup("Find Greenluma Path");
         	
@@ -98,17 +55,12 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             	//We are done
                 if (ImGui::Button("Done"))
                 {
-                    GreenlumaPath = pathInput;
-                    replace(GreenlumaPath.begin(), GreenlumaPath.end(), '\\', '/');
-
-                	//Only end if there is even a path
-                	if (!GreenlumaPath.empty())
+                	//Set the path we have happened to get. If there wasn't any to begin with then no worries.
+                    GLRProfile.SetGreenlumaPath(pathInput);
+                	
+                	//Only end if there is even a "valid" (not nessesarily correct) path
+                	if (!GLRProfile.GetGreenlumaPath().empty())
                 	{
-                		//Replace what we modified
-                        cJSON_ReplaceItemInObject(jConfig, "GreenlumaPath", cJSON_CreateString(GreenlumaPath.c_str()));
-
-                		//Write it to our Config in case our program crashes/closes prematurely
-                        WriteToConfig(jConfig, ConfigPath);
                         ImGui::CloseCurrentPopup();
                 	}
                 }
@@ -117,7 +69,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             }
         }
 
-        //Dock-space
+        //Dock-space setup
         SetupDockspace();
 
         //Show Demo Window
@@ -143,7 +95,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     GLRManager.CleanupImGuiGL();
 
 	//Make sure we properly write all of our vairables back into our config.
-    WriteToConfig(jConfig, ConfigPath);
+    //WriteToConfig(jConfig, ConfigPath);
 	
     return 0;
 }
