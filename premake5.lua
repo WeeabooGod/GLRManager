@@ -18,6 +18,7 @@ project "GLRManager"
 	debugdir	"Main"
 
     includedirs {
+		"Libraries/cJSON",
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
 		"Libraries/cUrl/include",
@@ -82,7 +83,6 @@ project "Libraries"
     files {
         "Libraries/OpenGL/**",
         "Libraries/IMGui/**",
-        "Libraries/cJSON/cJSON.c",
-        "Libraries/cJSON/cJSON.h",
+        "Libraries/cJSON/**",
 		"Libraries/cUrl/**",
     }

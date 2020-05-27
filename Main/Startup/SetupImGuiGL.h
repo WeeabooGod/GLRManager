@@ -6,7 +6,6 @@
 
 #include <GL/gl3w.h>
 
-// Include glfw3.h after our OpenGL definitions
 #include <string>
 #include <GLFW/glfw3.h>
 

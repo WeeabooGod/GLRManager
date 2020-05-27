@@ -1,5 +1,4 @@
 #pragma once
-
 #include <string>
 #include <algorithm>
 #include <direct.h>
@@ -8,12 +7,12 @@
 #include <sys/stat.h>
 #include <shlobj.h>   
 
-#include "../../Libraries/cJSON/cJSON.h"
+#include "cJSON.h"
 
 std::string InitDirectories();
 
-bool IsPathExist(const std::string& s);
-bool IsFileExist(const std::string& filePath);
+bool DoesPathExist(const std::string& dirPath);
+bool DoesFileExist(const std::string& filePath);
 
 std::string BrowseForFolder();
 

@@ -3,11 +3,6 @@
 //Default variables mostly in one place, used ONLY for Config creation
 #include "../Config/ConfigVariables.h"
 
-bool IsPathExist(const std::string& s)
-{
-    struct stat buffer{};
-    return (stat(s.c_str(), &buffer) == 0);
-}
 
 std::string InitDirectories()
 {
@@ -29,20 +24,20 @@ std::string InitDirectories()
     AppDataPath += "/GLRAppManager/";
 
     //Does the path even exist?
-    if (!IsPathExist(AppDataPath))
+    if (!DoesPathExist(AppDataPath))
     {
         //It Doesn't exist so lets create the directory
         _mkdir(AppDataPath.c_str());
     }
 
     //Does the Profile path even exist?
-    if (!IsPathExist(AppDataPath + "Profiles/"))
+    if (!DoesPathExist(AppDataPath + "Profiles/"))
     {
         _mkdir((AppDataPath + "Profiles/").c_str());
     }
 
     //Do we even have a Config.json to use?
-    if (!IsFileExist((AppDataPath + "Config.json")))
+    if (!DoesFileExist((AppDataPath + "Config.json")))
     {
         //It doesn't exist
         CreateJSON(AppDataPath + "Config.json");
@@ -55,7 +50,13 @@ std::string InitDirectories()
     return AppDataPath;
 }
 
-bool IsFileExist(const std::string& filePath)
+bool DoesPathExist(const std::string& dirPath)
+{
+    struct stat buffer {};
+    return (stat(dirPath.c_str(), &buffer) == 0);
+}
+
+bool DoesFileExist(const std::string& filePath)
 {
 	const std::ifstream file(filePath);
     return file.good();
