@@ -33,7 +33,6 @@ project "GLRManager"
         "Main/**.cpp",
 		"Main/**.h",
 		"Main/Tools/**",
-		"Main/Config/**",
     }
 
 	filter "configurations:Debug"

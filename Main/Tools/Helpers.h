@@ -1,22 +1,11 @@
 #pragma once
 #include <string>
-#include <algorithm>
-#include <direct.h>
-#include <fstream>
-#include <cstdio>
-#include <sys/stat.h>
-#include <shlobj.h>   
+#include <chrono>
 
-#include "cJSON.h"
-
-std::string InitDirectories();
+std::string BrowseForFolder();
 
 bool DoesPathExist(const std::string& dirPath);
 bool DoesFileExist(const std::string& filePath);
 
-std::string BrowseForFolder();
-
-void CreateJSON(const std::string& path);
-void VerifyJSON(const std::string& path);
-
-void WriteToConfig(cJSON* jConfig, const std::string path);
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp);
+std::string serializeTimePoint( const std::chrono::system_clock::time_point& time, const std::string& format);

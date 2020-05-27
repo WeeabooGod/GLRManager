@@ -1,54 +1,11 @@
 #include "Helpers.h"
 
-//Default variables mostly in one place, used ONLY for Config creation
-#include "../Config/ConfigVariables.h"
-
-
-std::string InitDirectories()
-{
-    //Path to our AppData
-    std::string AppDataPath;
-
-    //Get LocalAppData Location and if everything is valid, do stuff
-    char* buf = nullptr;
-    size_t sz = 0;
-    if (_dupenv_s(&buf, &sz, "LOCALAPPDATA") == 0 && buf != nullptr)
-    {
-        //Assing our Buffer to the string, then free the buffer
-        AppDataPath = buf;
-        free(buf);
-    }
-
-    //Replace the double backslash with forward slashes and add our program File to the end of it
-    replace(AppDataPath.begin(), AppDataPath.end(), '\\', '/');
-    AppDataPath += "/GLRAppManager/";
-
-    //Does the path even exist?
-    if (!DoesPathExist(AppDataPath))
-    {
-        //It Doesn't exist so lets create the directory
-        _mkdir(AppDataPath.c_str());
-    }
-
-    //Does the Profile path even exist?
-    if (!DoesPathExist(AppDataPath + "Profiles/"))
-    {
-        _mkdir((AppDataPath + "Profiles/").c_str());
-    }
-
-    //Do we even have a Config.json to use?
-    if (!DoesFileExist((AppDataPath + "Config.json")))
-    {
-        //It doesn't exist
-        CreateJSON(AppDataPath + "Config.json");
-    }
-
-	//Verify the Json, because if it did exist originally, does it have the proper information?
-    VerifyJSON(AppDataPath + "Config.json");
-	
-	//return the path
-    return AppDataPath;
-}
+#include <direct.h>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <sys/stat.h>
+#include "shlobj.h"   
 
 bool DoesPathExist(const std::string& dirPath)
 {
@@ -69,7 +26,7 @@ std::string BrowseForFolder()
     bi.lpszTitle = ("All Folders Automatically Recursed.");
     LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
 
-    if (pidl != 0)
+    if (pidl != nullptr)
     {
         // get the name of the folder and put it in path
         SHGetPathFromIDList(pidl, path);
@@ -80,7 +37,7 @@ std::string BrowseForFolder()
         //put the path we got into our textbox input
 
         // free memory used
-        IMalloc* imalloc = 0;
+        IMalloc* imalloc = nullptr;
         if (SUCCEEDED(SHGetMalloc(&imalloc)))
         {
             imalloc->Free(pidl);
@@ -92,38 +49,19 @@ std::string BrowseForFolder()
     return std::string(path);
 }
 
-void CreateJSON(const std::string& path)
+//Used to get a buffer from a website
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
-    std::ofstream ConfigFile(path);
-	
-    //Json Object, our "File" so to speak
-    cJSON* jConfigFile = cJSON_CreateObject();
-	
-	//Program name Variable
-    cJSON* jProgramName = cJSON_CreateString(DefaultProgramName.c_str());
-    cJSON* jProgramVersion = cJSON_CreateString(VersionNumber.c_str());
-    cJSON* jGreenlumaPath = cJSON_CreateString(GreenlumaPath.c_str());
-
-	
-    //Add variables into our "file"
-    cJSON_AddItemToObject(jConfigFile, "ProgramName", jProgramName);
-    cJSON_AddItemToObject(jConfigFile, "Version", jProgramVersion);
-    cJSON_AddItemToObject(jConfigFile, "GreenlumaPath", jGreenlumaPath);
-	
-	//Put raw data into our file now
-    ConfigFile << cJSON_Print(jConfigFile);
-
-	//We done here, YEET
-    ConfigFile.close();
+    static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
+    return size * nmemb;
 }
 
-void VerifyJSON(const std::string& path)
+//Basically make the time into a string
+std::string serializeTimePoint( const std::chrono::system_clock::time_point& time, const std::string& format)
 {
-}
-
-void WriteToConfig(cJSON* jConfig, const std::string path)
-{
-    std::ofstream ConfigFile(path);
-
-	ConfigFile << cJSON_Print(jConfig);
+    std::time_t tt = std::chrono::system_clock::to_time_t(time);
+    std::tm tm = *std::localtime(&tt);
+    std::stringstream ss;
+    ss << std::put_time( &tm, format.c_str() );
+    return ss.str();
 }

@@ -28,15 +28,17 @@ public:
 	UserProfile();
 
 	
-	cJSON* GetJSONFile(std::string Path);
+	cJSON* GetJSONFile(const std::string& Path);
 	void VerifyConfig();
 	void WriteToConfig();
 
 
 	std::string GetProgramName();
 	std::string GetGreenlumaPath();
-	void SetGreenlumaPath(std::string Path);
+	void SetGreenlumaPath(const std::string& Path);
 
 	void StartupAPPIDList();
 	cJSON* DownloadSteamAPPIDList();
+
+	std::string cURLWebsite(const std::string& URL);
 };

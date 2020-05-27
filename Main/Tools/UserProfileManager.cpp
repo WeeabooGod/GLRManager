@@ -1,30 +1,14 @@
 #include "UserProfileManager.h"
+
 #include <algorithm>
+#include <chrono>
+#include <cstdlib>
+#include <direct.h>
+#include <fstream>
+#include <iomanip>
 
 #include "Helpers.h"
 #include "curl/curl.h"
-
-
-#include <chrono>
-#include <iomanip>
-#include <sstream>
-#include <stdlib.h>
-
-std::string serializeTimePoint( const std::chrono::system_clock::time_point& time, const std::string& format)
-{
-    std::time_t tt = std::chrono::system_clock::to_time_t(time);
-    std::tm tm = *std::localtime(&tt);
-    std::stringstream ss;
-    ss << std::put_time( &tm, format.c_str() );
-    return ss.str();
-}
-
-//Used to get a buffer from a website
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
-{
-    static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
-    return size * nmemb;
-}
 
 UserProfile::UserProfile()
 {
@@ -104,7 +88,7 @@ UserProfile::UserProfile()
 	StartupAPPIDList();
 }
 
-cJSON* UserProfile::GetJSONFile(std::string Path)
+cJSON* UserProfile::GetJSONFile(const std::string& Path)
 {
 	//Load File and Parse
     std::ifstream file(Path);
@@ -138,10 +122,12 @@ std::string UserProfile::GetGreenlumaPath()
     return cJSON_GetObjectItem(jConfig, "GreenlumaPath")->valuestring;
 }
 
-void UserProfile::SetGreenlumaPath(std::string Path)
+void UserProfile::SetGreenlumaPath(const std::string& Path)
 {
 	replace(Path.begin(), Path.end(), '\\', '/');
 	cJSON_ReplaceItemInObject(jConfig, "GreenlumaPath", cJSON_CreateString(Path.c_str()));
+
+	WriteToConfig();
 }
 
 void UserProfile::StartupAPPIDList()
@@ -149,10 +135,6 @@ void UserProfile::StartupAPPIDList()
 	//First, lets check if the file exist, if it does/does not download the list and put it into our reference cJSON
 	if (!DoesFileExist(UserAppLocalPath + "MasterAppList/AppListV2.json" ))
 	{
-		//Just... create the file
-		std::ofstream CreatedAppListFile(UserAppLocalPath + "MasterAppList/AppListV2.json");
-		CreatedAppListFile.close();
-		
 		jMasterSteamAPPList = DownloadSteamAPPIDList();
 	}
     else
@@ -206,20 +188,10 @@ cJSON* UserProfile::DownloadSteamAPPIDList()
     std::ofstream CreatedAppListFile(UserAppLocalPath + "MasterAppList/AppListV2.json");
 
 	//Curl the GetAppList from steam, parse it into readbuffer, then put it all into a json file
-	CURL* curl;
-	CURLcode res;
-	std::string readBuffer;
-	curl = curl_easy_init();
-    if (curl) 
-    {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://api.steampowered.com/ISteamApps/GetAppList/v2/");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    	res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-    }
-	
-    cJSON* jTempList = cJSON_Parse(readBuffer.c_str());
+	std::string databuffer = cURLWebsite("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
+
+	//Create a temporary JSON file with the raw data we just got
+    cJSON* jTempList = cJSON_Parse(databuffer.c_str());
 	CreatedAppListFile << cJSON_Print(jTempList);
 	CreatedAppListFile.close();
 
@@ -230,4 +202,23 @@ cJSON* UserProfile::DownloadSteamAPPIDList()
 	WriteToConfig();
 
 	return jTempList;
+}
+
+std::string UserProfile::cURLWebsite(const std::string& URL)
+{
+	//Get raw data from specified URL
+	CURL* curl;
+	CURLcode res;
+	std::string databuffer;
+	curl = curl_easy_init();
+    if (curl) 
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, URL);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &databuffer);
+    	res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
+
+	return databuffer;
 }

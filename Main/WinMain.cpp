@@ -8,8 +8,6 @@
 #include "Tools/UserProfileManager.h"
 #include "curl/curl.h"
 
-using namespace std;
-
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	//Create the programs overall profile
@@ -48,7 +46,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 ImGui::InputText("", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None); ImGui::SameLine();
             	if (ImGui::Button("Find Path"))
             	{
-                    string filepath = BrowseForFolder();
+                    std::string filepath = BrowseForFolder();
                     strcpy_s(pathInput, filepath.c_str());
             	}
 
@@ -95,7 +93,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     GLRManager.CleanupImGuiGL();
 
 	//Make sure we properly write all of our vairables back into our config.
-    //WriteToConfig(jConfig, ConfigPath);
+    GLRProfile.WriteToConfig();
 	
     return 0;
 }
