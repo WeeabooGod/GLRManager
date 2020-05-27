@@ -122,7 +122,7 @@ std::string UserProfile::GetGreenlumaPath()
     return cJSON_GetObjectItem(jConfig, "GreenlumaPath")->valuestring;
 }
 
-void UserProfile::SetGreenlumaPath(const std::string& Path)
+void UserProfile::SetGreenlumaPath(std::string& Path)
 {
 	replace(Path.begin(), Path.end(), '\\', '/');
 	cJSON_ReplaceItemInObject(jConfig, "GreenlumaPath", cJSON_CreateString(Path.c_str()));
@@ -145,9 +145,6 @@ void UserProfile::StartupAPPIDList()
     	std::chrono::system_clock::time_point input = std::chrono::system_clock::now();
     	std::string CurrentTime = serializeTimePoint(input, "%Y-%m-%d %H:%M:%S");
     	std::string PastTime = cJSON_GetObjectItem(jConfig, "LastDownloadedList")->valuestring;
-
-    	std::string CurrentTimeDay = (serializeTimePoint(input, "%Y-%m-%d %H:%M:%S")).substr(8,2);
-    	std::string PastTimeDay = static_cast<std::string>(cJSON_GetObjectItem(jConfig, "LastDownloadedList")->valuestring).substr(8, 2);
     	
     	//Is the current day greater than the past day? (Probably a better way to do this but fuck it)
         if (CurrentTime.substr(8,2) > PastTime.substr(8, 2))
@@ -202,23 +199,4 @@ cJSON* UserProfile::DownloadSteamAPPIDList()
 	WriteToConfig();
 
 	return jTempList;
-}
-
-std::string UserProfile::cURLWebsite(const std::string& URL)
-{
-	//Get raw data from specified URL
-	CURL* curl;
-	CURLcode res;
-	std::string databuffer;
-	curl = curl_easy_init();
-    if (curl) 
-    {
-        curl_easy_setopt(curl, CURLOPT_URL, URL);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &databuffer);
-    	res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-    }
-
-	return databuffer;
 }

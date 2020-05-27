@@ -35,10 +35,8 @@ public:
 
 	std::string GetProgramName();
 	std::string GetGreenlumaPath();
-	void SetGreenlumaPath(const std::string& Path);
+	void SetGreenlumaPath(std::string& Path);
 
 	void StartupAPPIDList();
 	cJSON* DownloadSteamAPPIDList();
-
-	std::string cURLWebsite(const std::string& URL);
 };

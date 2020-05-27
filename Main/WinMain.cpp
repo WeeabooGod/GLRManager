@@ -54,7 +54,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 if (ImGui::Button("Done"))
                 {
                 	//Set the path we have happened to get. If there wasn't any to begin with then no worries.
-                    GLRProfile.SetGreenlumaPath(pathInput);
+                    GLRProfile.SetGreenlumaPath((std::string)pathInput);
                 	
                 	//Only end if there is even a "valid" (not nessesarily correct) path
                 	if (!GLRProfile.GetGreenlumaPath().empty())
