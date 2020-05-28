@@ -22,11 +22,13 @@ project "GLRManager"
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
 		"Libraries/cUrl/include",
+		"Libraries/Freetype/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
 		"Libraries/cUrl/lib",
+		"Libraries/Freetype/lib",
 	}
 
     files {
@@ -48,6 +50,7 @@ project "GLRManager"
 			"Crypt32",
 			"advapi32",
 			"libcurl_a_debug",
+			"freetype",
 		}
 		
     filter "configurations:Release"
@@ -63,6 +66,7 @@ project "GLRManager"
 			"Crypt32",
 			"advapi32",
 			"libcurl_a",
+			"freetype",
 		}
 ------------------------------------------------ Libraries Project
 project "Libraries"
@@ -71,12 +75,17 @@ project "Libraries"
 	language    "C++"
 	
     includedirs {
+		"Libraries/cJSON",
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
+		"Libraries/cUrl/include",
+		"Libraries/Freetype/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
+		"Libraries/cUrl/lib",
+		"Libraries/Freetype/lib",
 	}
 
     files {
@@ -84,4 +93,5 @@ project "Libraries"
         "Libraries/IMGui/**",
         "Libraries/cJSON/**",
 		"Libraries/cUrl/**",
+		"Libraries/Freetype/**",
     }

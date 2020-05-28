@@ -1,4 +1,5 @@
 #include "SetupImGuiGL.h"
+#include "../IMGui/imgui_freetype.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -52,23 +53,34 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Read 'misc/fonts/README.txt' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != NULL);
+    io.Fonts->AddFontFromFileTTF("Tools/Fonts/Roboto-Medium.ttf",16.0f);
+	io.Fonts->AddFontFromFileTTF("Tools/Fonts/Cousine-Regular.ttf", 15.0f);
+	io.Fonts->AddFontFromFileTTF("Tools/Fonts/DroidSans.ttf", 16.0f);
+	io.Fonts->AddFontFromFileTTF("Tools/Fonts/ProggyTiny.ttf", 10.0f);
+	io.Fonts->AddFontDefault();
 }
 
 void ImguiOpenGL::SetupImGuiFrame()
 {
+	//Freetype init
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->TexGlyphPadding = 1;
+	unsigned int  FontsFlags;
+	
+	FontsFlags = ImGuiFreeType::ForceAutoHint;
+	//FontsFlags |= ImGuiFreeType::Bold;
+	
+	for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
+	{
+		ImFontConfig* font_config = (ImFontConfig*)&io.Fonts->ConfigData[n];
+		font_config->RasterizerMultiply = 1.0f;
+		font_config->RasterizerFlags = FontsFlags;
+	}
+	ImGuiFreeType::BuildFontAtlas(io.Fonts, FontsFlags);
+
+	ImGui_ImplOpenGL3_DestroyDeviceObjects();
+    ImGui_ImplOpenGL3_CreateDeviceObjects();
+	
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();

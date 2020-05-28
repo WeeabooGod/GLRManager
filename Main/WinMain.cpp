@@ -6,6 +6,7 @@
 //Pretty much a list of all headers will be in helpers
 #include "Tools/Helpers.h"
 #include "Tools/UserProfileManager.h"
+#include "Tools/FreeTypeFont.h"
 #include "curl/curl.h"
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -16,6 +17,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
     //Setup the GL
     ImguiOpenGL GLRManager(GLRProfile.GetProgramName());
+
 	
     // Main loop
     while (!glfwWindowShouldClose(GLRManager.GetWindow()))
@@ -24,7 +26,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         glfwPollEvents();
         glClearColor(0.27f, 0.27f, 0.27f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+    	
         // Start the Dear ImGui frame
         GLRManager.SetupImGuiFrame();
 
@@ -66,7 +68,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 ImGui::EndPopup();
             }
         }
-
+    	
         //Dock-space setup
         SetupDockspace();
 
@@ -74,13 +76,26 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         ImGui::ShowDemoWindow();
 
         // render your GUI
-        ImGui::Begin("Profiles");
-        ImGui::Button("Hello!");
-        ImGui::End();
+    	if (ImGui::Begin("Profiles"))
+    	{
+    		ImGui::Text("Profiles");
+    		ImGui::Button("Hello!");
+			ImGui::End();
+    	}
 
-        ImGui::Begin("Game Search");
-        ImGui::Button("Hello!");
-        ImGui::End();
+        if (ImGui::Begin("Game Search"))
+        {
+        	static char pathInput[1024];
+
+        	ImGui::SameLine((ImGui::GetWindowWidth() / 2) - (ImGui::CalcTextSize("GreenLuma Reborn Manager").x / 2));
+        	ImGui::Text("GreenLuma Reborn Manager");
+        	ImGui::Spacing();
+        	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Search").x);
+        	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None); ImGui::SameLine();
+	        ImGui::Button("Search");
+			ImGui::End();   
+        }
+
 
         //End Dock-space
         EndDockspace();
