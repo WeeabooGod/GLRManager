@@ -44,9 +44,11 @@ void SetupDockspace()
         ImGuiID dock_main_id = DockspaceID; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
         ImGuiID DockLeft = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
         ImGuiID DockRight = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.15f, nullptr, &dock_main_id);
+    	ImGuiID DockLeftChild = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.90f, nullptr, &DockLeft);
 
         ImGui::DockBuilderDockWindow("Game Search", DockLeft);
         ImGui::DockBuilderDockWindow("Profiles", DockRight);
+    	ImGui::DockBuilderDockWindow("GamesTable", DockLeftChild);
 
         // Disable tab bar for custom toolbar so that it remains docked as well as not allow other dockings (because we dont need to)
         ImGuiDockNode* node = ImGui::DockBuilderGetNode(DockLeft);
@@ -54,6 +56,9 @@ void SetupDockspace()
         node->LocalFlags |= ImGuiDockNodeFlags_NoDocking;
         node = ImGui::DockBuilderGetNode(DockRight);
         node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+        node->LocalFlags |= ImGuiDockNodeFlags_NoDocking;
+    	node = ImGui::DockBuilderGetNode(DockLeftChild);
+    	node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
         node->LocalFlags |= ImGuiDockNodeFlags_NoDocking;
 
         //Finish that shit

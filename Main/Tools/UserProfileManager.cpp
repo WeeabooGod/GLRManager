@@ -154,6 +154,21 @@ void UserProfile::SetGreenlumaPath(std::string Path)
 	WriteToConfig();
 }
 
+int UserProfile::GetGameListSize()
+{
+	return GamesList.size();
+}
+
+std::string UserProfile::GetGameNameOfIndex(int index)
+{
+	return GamesList[index].Name;
+}
+
+std::string UserProfile::GetGameAppIDDOfIndex(int index)
+{
+	return std::to_string(GamesList[index].AppID);
+}
+
 void UserProfile::DownloadSteamAPPIDList()
 {
     std::ofstream CreatedAppListFile(UserSteamMasterListPath);

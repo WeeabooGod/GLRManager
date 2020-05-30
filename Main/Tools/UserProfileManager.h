@@ -8,7 +8,6 @@ struct Game
 {
 	std::string Name;
 	unsigned int AppID{};
-	std::string Type;
 };
 
 
@@ -46,6 +45,10 @@ public:
 	std::string GetProgramName();
 	std::string GetGreenlumaPath();
 	void SetGreenlumaPath(std::string Path);
+
+	int GetGameListSize();
+	std::string GetGameNameOfIndex(int index);
+	std::string GetGameAppIDDOfIndex(int index);
 
 	//Steam APP List
 	void DownloadSteamAPPIDList();

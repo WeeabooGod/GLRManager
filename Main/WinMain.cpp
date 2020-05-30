@@ -77,6 +77,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         //Show Demo Window
         ImGui::ShowDemoWindow();
 
+    	//A list of GameAPPID we would have selected
+        std::vector<unsigned int> selectedGameAPPID;
+        //A IMGUI Selected List to highlight stuff in Column
+        static std::vector<int> selected;
+
         // render your GUI
     	if (ImGui::Begin("Profiles"))
     	{
@@ -87,13 +92,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
         if (ImGui::Begin("Game Search"))
         {
+        	ImGui::Spacing();ImGui::Spacing();
         	static char pathInput[1024];
-
         	ImGui::SameLine((ImGui::GetWindowWidth() / 2) - (ImGui::CalcTextSize("GreenLuma Reborn Manager").x / 2));
         	ImGui::Text("GreenLuma Reborn Manager");
-        	//ImGui::Spacing();
+        	ImGui::Spacing();
         	
-        	ImGui::SetNextItemWidth((float)ImGui::GetWindowWidth() - (float)ImGui::CalcTextSize("Search").x*1.7f);
+        	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 1.2f - ImGui::CalcTextSize("Search").x*1.7f);
         	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None); ImGui::SameLine();
         	
 	        if (ImGui::Button("Search"))
@@ -103,10 +108,57 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        	if (!SearchKeys.empty())
 	        	{
 	        		GLRProfile.SearchListWithKey(SearchKeys);
+	        		selectedGameAPPID.clear();
+	        		selected.clear();
 	        	}
 	        }
+        	
 			ImGui::End();   
         }
+
+    	if (ImGui::Begin("GamesTable"))
+    	{
+    		//Columnns to show game stuff
+        	ImGui::Columns(2, "GameInformation");
+        	ImGui::Separator();
+        	ImGui::SetColumnWidth(0,ImGui::CalcTextSize("9999999").x*1.5f);
+        	ImGui::Text("AppID"); ImGui::NextColumn();
+        	ImGui::SetColumnWidth(1,ImGui::GetWindowWidth() - ImGui::CalcTextSize("Game").x*2.0f - ImGui::CalcTextSize("9999999").x*1.5f);
+		    ImGui::Text("Name"); ImGui::NextColumn();
+        	ImGui::Separator();
+
+        	//Set all items not selected
+        	for (int i = 0; i <  GLRProfile.GetGameListSize(); i++)
+        	{
+        		selected.push_back(-1);
+        	}
+        	for (int i = 0; i < GLRProfile.GetGameListSize(); i++)
+        	{
+        		if (ImGui::Selectable(GLRProfile.GetGameAppIDDOfIndex(i).c_str(), selected[i] == i, ImGuiSelectableFlags_SpanAllColumns))
+        		{
+        			if (selected[i] == i)
+        			{
+        				//Deselecting
+        				selected[i] = -1;
+        				auto iter = std::find(selectedGameAPPID.begin(), selectedGameAPPID.end(), std::stoi(GLRProfile.GetGameAppIDDOfIndex(i)));
+        				if (iter != selectedGameAPPID.end())
+        				{
+        					selectedGameAPPID.erase(iter);
+        				}
+        			}
+                    else
+                    {
+                    	//selecting
+						selected[i] = i;
+                    	selectedGameAPPID.push_back(std::stoi(GLRProfile.GetGameAppIDDOfIndex(i)));
+                    }
+        		}
+        		ImGui::NextColumn();
+        		ImGui::Text(GLRProfile.GetGameNameOfIndex(i).c_str()); ImGui::NextColumn();
+        	}
+        	ImGui::Columns(1);
+    		ImGui::End();
+    	}
 
 
         //End Dock-space
