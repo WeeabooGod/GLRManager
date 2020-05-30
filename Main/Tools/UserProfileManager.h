@@ -1,42 +1,54 @@
 #pragma once
-#include "cJSON.h"
+#include "simdjson.h"
 #include <string>
+#include <vector>
+
+//Basic structure for all games
+struct Game
+{
+	std::string Name;
+	unsigned int AppID{};
+	std::string Type;
+};
+
 
 //Manages the user's config and profiles
 class UserProfile
 {
-	cJSON* jConfig = nullptr;
-	cJSON* jMasterSteamAPPList = nullptr;
-	cJSON* jCurrentProfile = nullptr;
+	//simdjson stuff
+	simdjson::dom::parser GLRParser;
+	simdjson::dom::element jMasterList;
+	simdjson::dom::element jUserConfig;
+	simdjson::dom::element jCurrentGameProfile;
 
-	//User AppDataLocalPath
+	//User Paths and Files
 	std::string UserAppLocalPath = "";
+	std::string UserSteamMasterListPath = "";
+	std::string UserConfigPath = "";
+	std::string UserProfilePath = "";
 
 	//Default values when no Config exists
-	std::string DefaultProgramName = "Greenluma Reborn Manager";
-	std::string DefaultProgramVersion = "0.0.2";
-	std::string DefaultGreenlumaPath = "";
-	std::string DefaultLastDownloadedList = "N/A";
+	std::string ProgramName = "Greenluma Reborn Manager";
+	std::string ProgramVersion = "0.0.2";
+	std::string GreenlumaPath = "";
+	std::string LastDownloadedList = "";
 
-	//User Values
-	cJSON* jProgramName;
-	cJSON* jProgramVersion;
-	cJSON* jGreenlumaPath;
-	cJSON* jLastDownloadedList;
+	//Lists of Games on Search
+	std::vector<Game> GamesList;
 
 public:
 	UserProfile();
-
 	
-	cJSON* GetJSONFile(const std::string& Path);
-	void VerifyConfig();
+	std::string GetJSONFile(const std::string& Path);
 	void WriteToConfig();
 
-
+	//Get Setters for MainProgam
 	std::string GetProgramName();
 	std::string GetGreenlumaPath();
 	void SetGreenlumaPath(std::string& Path);
 
-	void StartupAPPIDList();
-	cJSON* DownloadSteamAPPIDList();
+	//Steam APP List
+	void DownloadSteamAPPIDList();
+	void SearchListWithKey(const std::string& SearchKey);
+
 };

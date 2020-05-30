@@ -18,11 +18,11 @@ project "GLRManager"
 	debugdir	"Main"
 
     includedirs {
-		"Libraries/cJSON",
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
 		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
+		"Libraries/simdjson",
     }
 	
 	libdirs {
@@ -55,7 +55,7 @@ project "GLRManager"
 		
     filter "configurations:Release"
         defines         { "NDEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS" }
-        optimize        "Full"
+		symbols         "on"
 		links {
 			"Libraries",
 			"opengl32",
@@ -75,11 +75,11 @@ project "Libraries"
 	language    "C++"
 	
     includedirs {
-		"Libraries/cJSON",
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
 		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
+		"Libraries/simdjson",
     }
 	
 	libdirs {
@@ -91,7 +91,7 @@ project "Libraries"
     files {
         "Libraries/OpenGL/**",
         "Libraries/IMGui/**",
-        "Libraries/cJSON/**",
 		"Libraries/cUrl/**",
 		"Libraries/Freetype/**",
+		"Libraries/simdjson/**",
     }

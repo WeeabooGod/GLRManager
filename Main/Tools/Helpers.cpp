@@ -67,6 +67,7 @@ std::string serializeTimePoint( const std::chrono::system_clock::time_point& tim
     return ss.str();
 }
 
+
 std::string cURLWebsite(const std::string& URL)
 {
 	//Get raw data from specified URL

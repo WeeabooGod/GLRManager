@@ -8,6 +8,10 @@
 #include "Tools/UserProfileManager.h"
 #include "Tools/FreeTypeFont.h"
 #include "curl/curl.h"
+#include "simdjson.h"
+
+#include <thread>
+#include <vector>
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -89,10 +93,20 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
         	ImGui::SameLine((ImGui::GetWindowWidth() / 2) - (ImGui::CalcTextSize("GreenLuma Reborn Manager").x / 2));
         	ImGui::Text("GreenLuma Reborn Manager");
-        	ImGui::Spacing();
-        	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Search").x);
+        	//ImGui::Spacing();
+        	
+        	ImGui::SetNextItemWidth((float)ImGui::GetWindowWidth() - (float)ImGui::CalcTextSize("Search").x*1.7f);
         	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None); ImGui::SameLine();
-	        ImGui::Button("Search");
+        	
+	        if (ImGui::Button("Search"))
+	        {
+		        std::string SearchKeys = pathInput;
+
+	        	if (!SearchKeys.empty())
+	        	{
+	        		GLRProfile.SearchListWithKey(SearchKeys);
+	        	}
+	        }
 			ImGui::End();   
         }
 
