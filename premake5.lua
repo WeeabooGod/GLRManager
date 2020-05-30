@@ -10,11 +10,11 @@ workspace "GLRManager"
 
 ------------------------------------------------ GLRManager Project 
 project "GLRManager"
-	ignoredefaultlibraries { "MSVCRT", "LIBCMTD" }
     location    "GLRManager"
     dependson   { "Libraries" }
     kind        "WindowedApp"
     language    "C++"
+	cppdialect 	"default"
 	debugdir	"Main"
 
     includedirs {
@@ -38,7 +38,8 @@ project "GLRManager"
     }
 
 	filter "configurations:Debug"
-        defines         { "_DEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS" }
+		ignoredefaultlibraries { "MSVCRT", "LIBCMTD" }
+        defines         { "_DEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS",}
         symbols         "on"
 		links {
 			"Libraries",
@@ -54,7 +55,9 @@ project "GLRManager"
 		}
 		
     filter "configurations:Release"
-        defines         { "NDEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS" }
+		ignoredefaultlibraries { "LIBCMT" }
+        defines         { "NDEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS",}
+		runtime "release"
 		symbols         "on"
 		links {
 			"Libraries",
@@ -95,3 +98,6 @@ project "Libraries"
 		"Libraries/Freetype/**",
 		"Libraries/simdjson/**",
     }
+	
+	filter "configurations:Debug"
+		runtime "debug"

@@ -147,7 +147,7 @@ std::string UserProfile::GetGreenlumaPath()
     return GreenlumaPath;
 }
 
-void UserProfile::SetGreenlumaPath(std::string& Path)
+void UserProfile::SetGreenlumaPath(std::string Path)
 {
 	replace(Path.begin(), Path.end(), '\\', '/');
 	GreenlumaPath = Path;
@@ -162,8 +162,7 @@ void UserProfile::DownloadSteamAPPIDList()
 	std::string databuffer = cURLWebsite("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
 
 	//Create a temporary JSON file with the raw data we just got
-    cJSON* jTempList = cJSON_Parse(databuffer.c_str());
-	CreatedAppListFile << cJSON_Print(jTempList);
+	CreatedAppListFile << jMasterList;
 	CreatedAppListFile.close();
 
 	//Write the time into our config, then call the write to config so our state can be saved even if the program closes prematurely.
@@ -186,7 +185,7 @@ void UserProfile::SearchListWithKey(const std::string& SearchKey)
         if (AppName.find(SearchKey) != std::string::npos)
         {
 	        Game temp;
-	        temp.AppID = element["appid"].get<double>();
+	        temp.AppID = static_cast<int>(element["appid"].get<double>());
 	        temp.Name = AppName;
 	        GamesList.push_back(temp);
         }

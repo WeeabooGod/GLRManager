@@ -45,7 +45,7 @@ public:
 	//Get Setters for MainProgam
 	std::string GetProgramName();
 	std::string GetGreenlumaPath();
-	void SetGreenlumaPath(std::string& Path);
+	void SetGreenlumaPath(std::string Path);
 
 	//Steam APP List
 	void DownloadSteamAPPIDList();

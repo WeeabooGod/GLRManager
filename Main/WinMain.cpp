@@ -7,8 +7,6 @@
 #include "Tools/Helpers.h"
 #include "Tools/UserProfileManager.h"
 #include "Tools/FreeTypeFont.h"
-#include "curl/curl.h"
-#include "simdjson.h"
 
 #include <thread>
 #include <vector>
@@ -60,7 +58,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 if (ImGui::Button("Done"))
                 {
                 	//Set the path we have happened to get. If there wasn't any to begin with then no worries.
-                    GLRProfile.SetGreenlumaPath((std::string)pathInput);
+                    GLRProfile.SetGreenlumaPath(pathInput);
                 	
                 	//Only end if there is even a "valid" (not nessesarily correct) path
                 	if (!GLRProfile.GetGreenlumaPath().empty())
