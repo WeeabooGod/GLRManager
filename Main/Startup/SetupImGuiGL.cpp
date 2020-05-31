@@ -14,10 +14,11 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
     glfwInit();
 
     // GL 3.0 + GLSL 130
-    const char* glsl_version = "#version 130";
+    const char* glsl_version = "#version 150";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	
     // Create window with graphics context
     window = glfwCreateWindow(1280, 720, programName.c_str(), nullptr, nullptr);
     glfwMakeContextCurrent(window);
@@ -58,6 +59,8 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
 	io.Fonts->AddFontFromFileTTF("Tools/Fonts/DroidSans.ttf", 16.0f);
 	io.Fonts->AddFontFromFileTTF("Tools/Fonts/ProggyTiny.ttf", 10.0f);
 	io.Fonts->AddFontDefault();
+
+	io.IniFilename = nullptr;
 }
 
 void ImguiOpenGL::SetupImGuiFrame()
@@ -85,17 +88,17 @@ void ImguiOpenGL::SetupImGuiFrame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+	
 }
 
 void ImguiOpenGL::RenderImGui()
 {
     // Rendering
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // Update and Render additional Platform Windows
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

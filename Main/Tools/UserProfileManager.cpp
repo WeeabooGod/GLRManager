@@ -177,7 +177,7 @@ void UserProfile::DownloadSteamAPPIDList()
 	std::string databuffer = cURLWebsite("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
 
 	//Create a temporary JSON file with the raw data we just got
-	CreatedAppListFile << jMasterList;
+	CreatedAppListFile << databuffer;
 	CreatedAppListFile.close();
 
 	//Write the time into our config, then call the write to config so our state can be saved even if the program closes prematurely.

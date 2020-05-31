@@ -123,7 +123,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         	ImGui::Separator();
         	ImGui::SetColumnWidth(0,ImGui::CalcTextSize("9999999").x*1.5f);
         	ImGui::Text("AppID"); ImGui::NextColumn();
-        	ImGui::SetColumnWidth(1,ImGui::GetWindowWidth() - ImGui::CalcTextSize("Game").x*2.0f - ImGui::CalcTextSize("9999999").x*1.5f);
+        	ImGui::SetColumnWidth(1,ImGui::GetWindowWidth() - ImGui::CalcTextSize("9999999").x*1.5f);
 		    ImGui::Text("Name"); ImGui::NextColumn();
         	ImGui::Separator();
 
@@ -160,7 +160,12 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		ImGui::End();
     	}
 
-
+        if (ImGui::Begin("TableButtons"))
+    	{
+    		ImGui::Button("Add Games");ImGui::SameLine((ImGui::GetWindowWidth() - (ImGui::CalcTextSize("BlackList AppID(s)").x * 1.15)));ImGui::Button("BlackList AppID(s)");
+			ImGui::End();
+    	}
+    	
         //End Dock-space
         EndDockspace();
 
