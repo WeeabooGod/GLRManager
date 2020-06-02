@@ -6,6 +6,7 @@
 #include <direct.h>
 #include <fstream>
 
+
 #include "Helpers.h"
 #include "curl/curl.h"
 
@@ -62,15 +63,18 @@ UserProfile::UserProfile()
 	//We need to get the nessesary information from the Config. 
 	GreenlumaPath = std::string_view(jUserConfig["GreenlumaPath"]).to_string();
 	LastDownloadedList = std::string_view(jUserConfig["LastDownloadedList"]).to_string();
+	LastProfileName = std::string_view(jUserConfig["LastProfileName"]).to_string();
 
 	
 	//First, lets check if the file exist, if it does/does not download the list and put it into our reference cJSON
 	if (!DoesFileExist(UserSteamMasterListPath))
 	{
 		DownloadSteamAPPIDList();
+		LogText.emplace_back("> Master SteamAPPIDList Does not Exist! Downloading...");
 	}
     else
     {
+    	bool Redownloaded = false;
     	//It exist, but is it time to download a new one?
 	    std::chrono::system_clock::time_point input = std::chrono::system_clock::now();
 	    std::string CurrentTime = serializeTimePoint(input, "%Y-%m-%d %H:%M:%S");
@@ -81,11 +85,13 @@ UserProfile::UserProfile()
     	{
     		//If its empty yet we had the list, redownload
     		DownloadSteamAPPIDList();
+    		Redownloaded = true;
     	}
 	    else if (CurrentTime.substr(8,2) > PastTime.substr(8, 2))
 	    {
 	    	//We are a day older, lets refresh the list for safe measure
 	        DownloadSteamAPPIDList();
+	    	Redownloaded = true;
 	    }
 	    else if (CurrentTime.substr(8,2) == PastTime.substr(8, 2))
 	    {
@@ -93,6 +99,7 @@ UserProfile::UserProfile()
 	        if ((CurrentTime.substr(5,2) > PastTime.substr(5, 2)))
 	        {
 		        DownloadSteamAPPIDList();
+	        	Redownloaded = true;
 	        }
 	        else if (CurrentTime.substr(5,2) == PastTime.substr(5, 2))
 	        {
@@ -101,12 +108,22 @@ UserProfile::UserProfile()
 	            {
 	            	//If at this point, its not the same year, then we can also be sure we don't need to redownload list
             		DownloadSteamAPPIDList();
+	            	Redownloaded = true;
 	            }
 	        }
 	    }
+
+    	if (Redownloaded)
+    	{
+    		LogText.emplace_back("> SteamAppIDDlist was a day old! Redownloading...");
+    	}
     }
 	
-	jMasterList = GLRParser.load(UserSteamMasterListPath);
+	jMasterList = GLRMasterListParser.load(UserSteamMasterListPath);
+
+	//Load the Profiles
+	LoadProfile(LastProfileName);	//Load the last profile, defaults to "default" if there was none
+	LoadProfile("Blacklist");		//Loads the blacklist file
 }
 
 std::string UserProfile::GetJSONFile(const std::string& Path)
@@ -128,13 +145,16 @@ void UserProfile::WriteToConfig()
 	"ProgramName":  ")" + ProgramName + R"(",
 	"Version":  ")" + ProgramVersion + R"(",
 	"GreenlumaPath":    ")" + GreenlumaPath + R"(",
-	"LastDownloadedList":   ")" + LastDownloadedList + R"("
+	"LastDownloadedList":   ")" + LastDownloadedList + R"(",
+	"LastProfileName":   ")" + LastProfileName + R"("
 })";
 	
 	//Save what ever we have made modifications to into our json
 	std::ofstream ConfigFile(UserConfigPath);
 	ConfigFile << NewConfig;
 	ConfigFile.close();
+
+	LogText.emplace_back("> Wrote to config.");
 }
 
 std::string UserProfile::GetProgramName()
@@ -149,14 +169,20 @@ std::string UserProfile::GetGreenlumaPath()
 
 void UserProfile::SetGreenlumaPath(std::string Path)
 {
+	LogText.emplace_back("> Setting Greenluma Path...");
 	replace(Path.begin(), Path.end(), '\\', '/');
 	GreenlumaPath = Path;
 	WriteToConfig();
 }
 
+const std::vector<std::string> UserProfile::GetLogText()
+{
+	return LogText;
+}
+
 int UserProfile::GetGameListSize()
 {
-	return GamesList.size();
+	return static_cast<int>(GamesList.size());
 }
 
 std::string UserProfile::GetGameNameOfIndex(int index)
@@ -167,6 +193,118 @@ std::string UserProfile::GetGameNameOfIndex(int index)
 std::string UserProfile::GetGameAppIDDOfIndex(int index)
 {
 	return std::to_string(GamesList[index].AppID);
+}
+
+Game UserProfile::GetGameOfIndex(int index)
+{
+	return GamesList[index];
+}
+
+void UserProfile::LoadProfile(const std::string& ProfileName)
+{
+	if (ProfileName == "Blacklist")
+		BlacklistedGames.clear();
+	else
+		CurrentProfileGames.clear();
+
+	if (!ProfileName.empty())
+	{
+		simdjson::dom::element jTempProfile;
+		simdjson::error_code error;
+		GLRParser.load(UserProfilePath + ProfileName + ".json").tie(jTempProfile, error);
+
+		if (!error)
+		{
+			//Go through the entire 90000+ json app list. Thankfully simdjson is REALLY fast so this takes naught but a second
+			for (simdjson::dom::element element : jTempProfile["GamesList"])
+			{
+			    Game temp;
+			    temp.AppID = static_cast<int>(element["AppID"].get<double>());
+			    temp.Name = std::string_view(element["name"]).to_string();
+				
+				if (ProfileName == "Blacklist")
+					BlacklistedGames.push_back(temp);
+				else
+					CurrentProfileGames.push_back(temp);
+			}
+		}
+		
+		if (ProfileName != "Blacklist")
+			CurrentProfileName = ProfileName;
+	}
+}
+
+void UserProfile::SaveProfile(const std::string& ProfileName)
+{
+	std::basic_string<char> NewProfile = R"({
+	"GamesList":  [)";
+
+	for (int i = 0; i < BlacklistedGames.size(); i++)
+	{
+		NewProfile += R"(
+		{ "name": ")" + BlacklistedGames[i].Name + R"(", "AppID":)" + std::to_string(BlacklistedGames[i].AppID);
+
+		if (i != BlacklistedGames.size() - 1)
+		{
+			NewProfile += R"(},)";
+		}
+		else
+		{
+			NewProfile += R"(})";
+		}
+	}
+	NewProfile += R"(
+	]
+})";
+
+	//Save what ever we have made modifications to into our json
+	std::ofstream ProfileFile(UserProfilePath + "Blacklist.json");
+	ProfileFile << NewProfile;
+	ProfileFile.close();
+
+	//Reload the Profile
+	LoadProfile(ProfileName);
+}			
+
+void UserProfile::SetProfileGames(std::vector<Game> GameList)
+{
+	for (auto Game : GameList)
+	{
+		if (std::find(CurrentProfileGames.begin(), CurrentProfileGames.end(), Game) == CurrentProfileGames.end())
+		{
+			//The game was not already in the list
+			CurrentProfileGames.push_back(Game);
+		}
+	}
+
+	SaveProfile(CurrentProfileName);
+}
+
+void UserProfile::SetBlacklistGames(std::vector<Game> GameList)
+{
+	std::vector<Game> NewList;
+	
+	for (auto Game : GameList)
+	{
+		if (std::find(BlacklistedGames.begin(), BlacklistedGames.end(), Game) == BlacklistedGames.end())
+		{
+			//The game was not already in the list
+			BlacklistedGames.push_back(Game);
+		}
+	}
+
+	//Make a new list that now does not include the blacklisted games
+	for (auto List : GamesList)
+	{
+		if (std::find(BlacklistedGames.begin(), BlacklistedGames.end(), List) == BlacklistedGames.end())
+		{
+			//The game was not already in the list
+			NewList.push_back(List);
+		}
+	}
+	GamesList = NewList;
+
+	SaveProfile("Blacklist");
 }
 
 void UserProfile::DownloadSteamAPPIDList()
@@ -184,6 +322,8 @@ void UserProfile::DownloadSteamAPPIDList()
 	std::chrono::system_clock::time_point input = std::chrono::system_clock::now();
 	LastDownloadedList = serializeTimePoint(input, "%Y-%m-%d %H:%M:%S");
 	WriteToConfig();
+
+	LogText.emplace_back("> Downloaded SteamAPPIDList v2");
 }
 
 void UserProfile::SearchListWithKey(const std::string& SearchKey)
@@ -191,18 +331,42 @@ void UserProfile::SearchListWithKey(const std::string& SearchKey)
 	//Clear list just in case
 	GamesList.clear();
 
+	std::vector<std::string> SearchWords;
+	std::istringstream iss(SearchKey);
+	for (std::string s; iss >> s;)
+		SearchWords.push_back(s);
+	
 	//Go through the entire 90000+ json app list. Thankfully simdjson is REALLY fast so this takes naught but a second
     for (simdjson::dom::element element : jMasterList["applist"]["apps"])
-    {
-        simdjson::dom::element string = element["name"];
-        std::string AppName = std::string_view(string).to_string();
+	{
+	    simdjson::dom::element string = element["name"];
+	    std::string AppName = std::string_view(string).to_string();
 
-        if (AppName.find(SearchKey) != std::string::npos)
-        {
+    	bool Match = true;
+    	for (auto word : SearchWords)
+    	{
+    		//If any word does not match we not good
+    		if (AppName.find(word) == std::string::npos)
+				Match = false;
+    	}
+    	
+	    if (Match)
+	    {
+	    	//Some games have pesky "qoutes" in them, honestly they suck.
+	    	replace(AppName.begin(), AppName.end(), '"', '-');
+	    	
 	        Game temp;
 	        temp.AppID = static_cast<int>(element["appid"].get<double>());
 	        temp.Name = AppName;
-	        GamesList.push_back(temp);
-        }
-    }
+	    	
+			if (std::find(BlacklistedGames.begin(), BlacklistedGames.end(), temp) == BlacklistedGames.end())
+			{
+				//The game was not in the blacklist
+				GamesList.push_back(temp);
+			}
+		}
+	}
+	
+	LogText.emplace_back("> Found " + std::to_string(GamesList.size()) + " entries that matched the search.");
+	
 }

@@ -45,12 +45,14 @@ void SetupDockspace()
         ImGuiID DockLeft = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.70f, nullptr, &dock_main_id);
         ImGuiID DockRight = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
     	ImGuiID DockLeftChild = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.90f, nullptr, &DockLeft);
+    	ImGuiID DockRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.20f, nullptr, &DockRight);
     	ImGuiID DockingLeftDownChild = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
 
         ImGui::DockBuilderDockWindow("Game Search", DockLeft);
         ImGui::DockBuilderDockWindow("Profiles", DockRight);
     	ImGui::DockBuilderDockWindow("GamesTable", DockLeftChild);
     	ImGui::DockBuilderDockWindow("TableButtons", DockingLeftDownChild);
+    	ImGui::DockBuilderDockWindow("Logs", DockRightChild);
 
         // Disable tab bar for custom toolbar so that it remains docked as well as not allow other dockings (because we dont need to)
         ImGuiDockNode* node = ImGui::DockBuilderGetNode(DockLeft);
@@ -63,6 +65,9 @@ void SetupDockspace()
     	node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
         node->LocalFlags |= ImGuiDockNodeFlags_NoDocking;
     	node = ImGui::DockBuilderGetNode(DockingLeftDownChild);
+    	node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+        node->LocalFlags |= ImGuiDockNodeFlags_NoDocking;
+    	node = ImGui::DockBuilderGetNode(DockRightChild);
     	node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
         node->LocalFlags |= ImGuiDockNodeFlags_NoDocking;
 

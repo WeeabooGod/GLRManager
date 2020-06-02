@@ -20,6 +20,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     //Setup the GL
     ImguiOpenGL GLRManager(GLRProfile.GetProgramName());
 
+	//Vairables used within the loops
+    std::vector<Game> SelectedGames; 	//A list of GameAPPID we would have selected
+    static std::vector<int> selected;     //A IMGUI Selected List to highlight stuff in Column
+	static int lastSelected = 0;                //Used mostly to allow for shift select
 	
     // Main loop
     while (!glfwWindowShouldClose(GLRManager.GetWindow()))
@@ -77,17 +81,45 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         //Show Demo Window
         ImGui::ShowDemoWindow();
 
-    	//A list of GameAPPID we would have selected
-        std::vector<unsigned int> selectedGameAPPID;
-        //A IMGUI Selected List to highlight stuff in Column
-        static std::vector<int> selected;
-
         // render your GUI
     	if (ImGui::Begin("Profiles"))
     	{
     		ImGui::Text("Profiles");
     		ImGui::Button("Hello!");
 			ImGui::End();
+    	}
+
+    	if (ImGui::Begin("Logs"))
+    	{
+    		ImGui::Text("Logs");
+
+            ImGui::PushID("##Logs");
+    		ImGui::BeginGroup();
+    		
+    		const ImGuiWindowFlags child_flags = 0;
+            const ImGuiID child_id = ImGui::GetID(static_cast<void*>(nullptr));
+            ImGui::BeginChild(child_id, ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true, child_flags);
+
+    		//Here is where we can display logs
+    		for (int i = 0; i < GLRProfile.GetLogText().size(); i++)
+    		{
+    			if (i == GLRProfile.GetLogText().size() - 1)
+    			{
+    				//Normal White Color
+    				ImGui::Text(GLRProfile.GetLogText()[i].c_str());
+    			}
+                else
+                {
+                	//Render at half color
+	                ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,1), GLRProfile.GetLogText()[i].c_str());
+                }
+    			ImGui::SetScrollHere(1.0f);
+    		}
+    		
+    		ImGui::EndChild();
+    		ImGui::EndGroup();
+    		ImGui::PopID();
+    		ImGui::End();
     	}
 
         if (ImGui::Begin("Game Search"))
@@ -108,7 +140,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        	if (!SearchKeys.empty())
 	        	{
 	        		GLRProfile.SearchListWithKey(SearchKeys);
-	        		selectedGameAPPID.clear();
+	        		SelectedGames.clear();
 	        		selected.clear();
 	        	}
 	        }
@@ -140,17 +172,17 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         			{
         				//Deselecting
         				selected[i] = -1;
-        				auto iter = std::find(selectedGameAPPID.begin(), selectedGameAPPID.end(), std::stoi(GLRProfile.GetGameAppIDDOfIndex(i)));
-        				if (iter != selectedGameAPPID.end())
+        				auto iter = std::find(SelectedGames.begin(), SelectedGames.end(), GLRProfile.GetGameOfIndex(i));
+        				if (iter != SelectedGames.end())
         				{
-        					selectedGameAPPID.erase(iter);
+        					SelectedGames.erase(iter);
         				}
         			}
                     else
                     {
-                    	//selecting
+                    	//Selecting
 						selected[i] = i;
-                    	selectedGameAPPID.push_back(std::stoi(GLRProfile.GetGameAppIDDOfIndex(i)));
+                    	SelectedGames.push_back(GLRProfile.GetGameOfIndex(i));
                     }
         		}
         		ImGui::NextColumn();
@@ -162,7 +194,19 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
         if (ImGui::Begin("TableButtons"))
     	{
-    		ImGui::Button("Add Games");ImGui::SameLine((ImGui::GetWindowWidth() - (ImGui::CalcTextSize("BlackList AppID(s)").x * 1.15)));ImGui::Button("BlackList AppID(s)");
+    		if (ImGui::Button("Add Games"))
+    		{
+    			GLRProfile.SetProfileGames(SelectedGames);
+    			SelectedGames.clear();
+    			selected.clear();
+    		}
+            ImGui::SameLine((ImGui::GetWindowWidth() - (ImGui::CalcTextSize("BlackList Games").x * 1.15f)));
+            if (ImGui::Button("BlackList Games"))
+            {
+	            GLRProfile.SetBlacklistGames(SelectedGames);
+            	SelectedGames.clear();
+            	selected.clear();
+            }
 			ImGui::End();
     	}
     	
