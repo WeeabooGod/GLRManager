@@ -19,6 +19,7 @@ class UserProfile
 	simdjson::dom::parser GLRMasterListParser;
 	simdjson::dom::element jMasterList;
 
+	//For some reason when you load a new file with the same parser, even though we store the element, it gets lost. This parser is for Configs and Profiles instead as we load them on the fly
 	simdjson::dom::parser GLRParser;
 	simdjson::dom::element jUserConfig;
 
@@ -30,7 +31,7 @@ class UserProfile
 
 	//Default values when no Config exists
 	std::string ProgramName = "Greenluma Reborn Manager";
-	std::string ProgramVersion = "0.0.2";
+	std::string ProgramVersion = "0.0.5";
 	std::string GreenlumaPath = "";
 	std::string LastDownloadedList = "";
 	std::string LastProfileName = "";
@@ -42,7 +43,12 @@ class UserProfile
 	std::vector<Game> CurrentProfileGames;
 	std::string CurrentProfileName;
 	std::vector<Game> BlacklistedGames;
-	
+
+	//Profiles list
+	std::vector<std::string> ProfileNamesList;
+
+
+	//Log text list
 	std::vector<std::string>LogText;
 
 public:
@@ -67,6 +73,8 @@ public:
 	void SaveProfile(const std::string& ProfileName);
 	void SetProfileGames(std::vector<Game> GameList);
 	void SetBlacklistGames(std::vector<Game> GameList);
+
+	void GetProfilesInDirectory();
 
 	//Steam APP List
 	void DownloadSteamAPPIDList();

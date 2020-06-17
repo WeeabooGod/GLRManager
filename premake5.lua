@@ -14,7 +14,7 @@ project "GLRManager"
     dependson   { "Libraries" }
     kind        "WindowedApp"
     language    "C++"
-	cppdialect 	"default"
+	cppdialect 	"C++17"
 	debugdir	"Main"
 
     includedirs {

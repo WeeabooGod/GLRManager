@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <direct.h>
 #include <fstream>
-
+#include <filesystem>
 
 #include "Helpers.h"
 #include "curl/curl.h"
@@ -60,10 +60,10 @@ UserProfile::UserProfile()
 	//Load our Config
 	jUserConfig = GLRParser.load(UserConfigPath);
 		
-	//We need to get the nessesary information from the Config. 
-	GreenlumaPath = std::string_view(jUserConfig["GreenlumaPath"]).to_string();
-	LastDownloadedList = std::string_view(jUserConfig["LastDownloadedList"]).to_string();
-	LastProfileName = std::string_view(jUserConfig["LastProfileName"]).to_string();
+	//We need to get the nessesary information from the Config.
+	GreenlumaPath = std::string_view(jUserConfig["GreenlumaPath"]);
+	LastDownloadedList = std::string_view(jUserConfig["LastDownloadedList"]);
+	LastProfileName = std::string_view(jUserConfig["LastProfileName"]);
 
 	
 	//First, lets check if the file exist, if it does/does not download the list and put it into our reference cJSON
@@ -115,15 +115,16 @@ UserProfile::UserProfile()
 
     	if (Redownloaded)
     	{
-    		LogText.emplace_back("> SteamAppIDDlist was a day old! Redownloading...");
+    		LogText.emplace_back("> The list was a day old or more so it was redownloaded...");
     	}
     }
 	
 	jMasterList = GLRMasterListParser.load(UserSteamMasterListPath);
 
 	//Load the Profiles
-	LoadProfile(LastProfileName);	//Load the last profile, defaults to "default" if there was none
-	LoadProfile("Blacklist");		//Loads the blacklist file
+	GetProfilesInDirectory();		// Get all profiles in directory
+	LoadProfile(LastProfileName);	// Load the last profile, defaults to "default" if there was none
+	LoadProfile("Blacklist");		// Loads the blacklist file
 }
 
 std::string UserProfile::GetJSONFile(const std::string& Path)
@@ -220,7 +221,7 @@ void UserProfile::LoadProfile(const std::string& ProfileName)
 			{
 			    Game temp;
 			    temp.AppID = static_cast<int>(element["AppID"].get<double>());
-			    temp.Name = std::string_view(element["name"]).to_string();
+			    temp.Name = std::string_view(element["name"]);
 				
 				if (ProfileName == "Blacklist")
 					BlacklistedGames.push_back(temp);
@@ -307,6 +308,22 @@ void UserProfile::SetBlacklistGames(std::vector<Game> GameList)
 	SaveProfile("Blacklist");
 }
 
+void UserProfile::GetProfilesInDirectory()
+{
+	//Get all the available profiles that exist and is there
+	for (const auto & entry : std::filesystem::directory_iterator(UserProfilePath))
+	{
+		if (entry.path().filename().extension().generic_string() == ".json")
+		{
+			//get string then remove the extention
+			std::string tempstring = entry.path().filename().generic_string();
+			tempstring = tempstring.substr(0, tempstring.size() - 5);
+
+			ProfileNamesList.emplace_back(tempstring);
+		}
+	}
+}
+
 void UserProfile::DownloadSteamAPPIDList()
 {
     std::ofstream CreatedAppListFile(UserSteamMasterListPath);
@@ -340,7 +357,7 @@ void UserProfile::SearchListWithKey(const std::string& SearchKey)
     for (simdjson::dom::element element : jMasterList["applist"]["apps"])
 	{
 	    simdjson::dom::element string = element["name"];
-	    std::string AppName = std::string_view(string).to_string();
+	    std::string AppName = string.get<const char *>();
 
     	bool Match = true;
     	for (auto word : SearchWords)
