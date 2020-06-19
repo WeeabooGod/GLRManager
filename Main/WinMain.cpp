@@ -28,11 +28,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     // Main loop
     while (!glfwWindowShouldClose(GLRManager.GetWindow()))
     {
-        //OpenGL Shit
-        glfwPollEvents();
-        glClearColor(0.27f, 0.27f, 0.27f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
-    	
         // Start the Dear ImGui frame
         GLRManager.SetupImGuiFrame();
 

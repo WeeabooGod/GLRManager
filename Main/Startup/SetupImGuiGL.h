@@ -22,5 +22,7 @@ public:
     void RenderImGui();
     void CleanupImGuiGL();
 
+	void FreetypeInit();
+
     GLFWwindow* GetWindow() const;
 };

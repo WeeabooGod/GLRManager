@@ -34,7 +34,7 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    io.ConfigFlags |= ImGuiCol_DragDropTarget;
+    //io.ConfigFlags |= ImGuiCol_DragDropTarget;
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
 
@@ -65,24 +65,11 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
 
 void ImguiOpenGL::SetupImGuiFrame()
 {
+	//Poll Events
+	glfwPollEvents();
+	
 	//Freetype init
-	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->TexGlyphPadding = 1;
-	unsigned int  FontsFlags;
-	
-	FontsFlags = ImGuiFreeType::ForceAutoHint;
-	//FontsFlags |= ImGuiFreeType::Bold;
-	
-	for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
-	{
-		ImFontConfig* font_config = (ImFontConfig*)&io.Fonts->ConfigData[n];
-		font_config->RasterizerMultiply = 1.0f;
-		font_config->RasterizerFlags = FontsFlags;
-	}
-	ImGuiFreeType::BuildFontAtlas(io.Fonts, FontsFlags);
-
-	ImGui_ImplOpenGL3_DestroyDeviceObjects();
-    ImGui_ImplOpenGL3_CreateDeviceObjects();
+	FreetypeInit();
 	
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -95,7 +82,9 @@ void ImguiOpenGL::RenderImGui()
 {
     // Rendering
     ImGui::Render();
-    int display_w, display_h;
+    auto display_w = 0;
+    auto display_h = 0;
+	
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -119,6 +108,28 @@ void ImguiOpenGL::CleanupImGuiGL()
 
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void ImguiOpenGL::FreetypeInit()
+{
+	//Freetype init
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->TexGlyphPadding = 1;
+	unsigned int  FontsFlags = 0;
+	
+	FontsFlags = ImGuiFreeType::ForceAutoHint;
+	//FontsFlags |= ImGuiFreeType::Bold;
+	
+	for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
+	{
+		auto* font_config = static_cast<ImFontConfig*>(&io.Fonts->ConfigData[n]);
+		font_config->RasterizerMultiply = 1.0f;
+		font_config->RasterizerFlags = FontsFlags;
+	}
+	ImGuiFreeType::BuildFontAtlas(io.Fonts, FontsFlags);
+
+	ImGui_ImplOpenGL3_DestroyDeviceObjects();
+    ImGui_ImplOpenGL3_CreateDeviceObjects();
 }
 
 GLFWwindow* ImguiOpenGL::GetWindow() const
