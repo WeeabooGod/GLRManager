@@ -6,7 +6,6 @@
 #include <sstream>
 #include <sys/stat.h>
 #include "shlobj.h"
-#include "curl/curl.h"
 
 bool DoesPathExist(const std::string& dirPath)
 {
@@ -65,24 +64,4 @@ std::string serializeTimePoint( const std::chrono::system_clock::time_point& tim
     std::stringstream ss;
     ss << std::put_time( &tm, format.c_str() );
     return ss.str();
-}
-
-
-std::string cURLWebsite(const std::string& URL)
-{
-	//Get raw data from specified URL
-	CURL* curl;
-	CURLcode res;
-	std::string databuffer;
-	curl = curl_easy_init();
-    if (curl) 
-    {
-        curl_easy_setopt(curl, CURLOPT_URL, URL.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &databuffer);
-    	res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-    }
-
-	return databuffer;
 }

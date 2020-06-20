@@ -15,6 +15,5 @@ bool DoesPathExist(const std::string& dirPath);
 bool DoesFileExist(const std::string& filePath);
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp);
-std::string cURLWebsite(const std::string& URL);
 
 std::string serializeTimePoint( const std::chrono::system_clock::time_point& time, const std::string& format);

@@ -52,7 +52,6 @@ project "GLRManager"
 			"Wldap32",
 			"Crypt32",
 			"advapi32",
-			"libcurl_a_debug",
 			"freetype",
 			"Ultralight",
 			"UltralightCore",
@@ -74,7 +73,6 @@ project "GLRManager"
 			"Wldap32",
 			"Crypt32",
 			"advapi32",
-			"libcurl_a",
 			"freetype",
 			"Ultralight",
 			"UltralightCore",
@@ -90,7 +88,6 @@ project "Libraries"
     includedirs {
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
-		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
 		"Libraries/simdjson",
 		"Libraries/UltralightHeadless/include",
@@ -98,7 +95,6 @@ project "Libraries"
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
-		"Libraries/cUrl/lib",
 		"Libraries/Freetype/lib",
 		"Libraries/UltralightHeadless/lib",
 	}
@@ -106,7 +102,6 @@ project "Libraries"
     files {
         "Libraries/OpenGL/**",
         "Libraries/IMGui/**",
-		"Libraries/cUrl/**",
 		"Libraries/Freetype/**",
 		"Libraries/simdjson/**",
 		"Libraries/UltralightHeadless/**",

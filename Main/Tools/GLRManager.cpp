@@ -6,8 +6,6 @@
 #include <fstream>
 #include <filesystem>
 
-#include "curl/curl.h"
-
 GLRManager::GLRManager()
 {
 	//Init our profile, therefore we need to get the Local Appdata Location, and if everything is valid, do stuff
