@@ -5,12 +5,12 @@ using namespace ultralight;
 HeadlessBrowserManager::HeadlessBrowserManager()
 {
 	Config config;
-    config.device_scale_hint = 2.0;
+    config.device_scale_hint = 1.0;
     config.font_family_standard = "Arial";
 	Platform::instance().set_config(config);
 	
 	GLRBrowserRenderer = Renderer::Create();
-	//GLRBrowserView = GLRBrowserRenderer->CreateView(1200, 3000, false);
+	GLRBrowserView = GLRBrowserRenderer->CreateView(1200, 3000, false);
 
 	GLRBrowserView->set_load_listener(this);
 }
@@ -26,46 +26,85 @@ void HeadlessBrowserManager::SearchSteamDB(const std::string& SearchWord)
 	//Base URL
 	std::string URL = "https://steamdb.info/search/?a=app&q=";
 
-	//Create a vector of words in our search
-	std::vector<std::string> SearchWords;
+	//Append each "Word" for use on our search
 	std::istringstream iss(SearchWord);
 	for (std::string s; iss >> s;)
-		SearchWords.push_back(s);
-	
-	//Append Search to URL
-	for (const auto& Word : SearchWords)
-	{
-		URL += Word + "+";
-	}
-	
+		URL += s + "+";
+
+	//Load Webpage
 	GLRBrowserView->LoadURL(URL.c_str());
 }
 
 void HeadlessBrowserManager::Run()
 {
+	//Run it and wait for it to finish
 	while(!IsDone)
 		GLRBrowserRenderer->Update();
-
-	//We are done, create the list
-	//CreateList();
 }
 
 
-//void HeadlessBrowserManager::CreateList()
-//{
-//	//How large is our list?
-//	JSValueRef result = GLRBrowserView->EvaluateScript("document.getElementById('table-sortable').getElementsByTagName('tbody')[0].getElementsByTagName('tr').length");
-//	int ListSize = static_cast<int>(JSValueToNumber(GLRBrowserView->js_context(), result, nullptr));
-//}
+std::vector<Game> HeadlessBrowserManager::GetList()
+{
+	std::vector<Game> TempList;
+	
+	//How large is our list?
+	JSValueRef result = GLRBrowserView->EvaluateScript("document.getElementById('table-sortable').getElementsByTagName('tbody')[0].getElementsByTagName('tr').length");
+	int ListSize = static_cast<int>(JSValueToNumber(GLRBrowserView->js_context(), result, nullptr));
+
+	//Loop through, we can be safe that if the ListSize is valid, then each entry will have an APPID, Type, and Name
+	for (int i = 0; i < ListSize; i++)
+	{
+		Game Temp;
+
+		//Create the Script for which we will Evaluate.
+		std::string Script = "document.getElementById('table-sortable').getElementsByTagName('tbody')[0].getElementsByTagName('tr').item(" + std::to_string(i) + ").cells[0].getElementsByTagName('a').item(0).innerHTML";
+		JSValueRef AppID = GLRBrowserView->EvaluateScript(Script.c_str());
+
+		Script = "document.getElementById('table-sortable').getElementsByTagName('tbody')[0].getElementsByTagName('tr').item(" + std::to_string(i) + ").cells[1].innerHTML";
+		JSValueRef AppType = GLRBrowserView->EvaluateScript(Script.c_str());
+
+		Script = "document.getElementById('table-sortable').getElementsByTagName('tbody')[0].getElementsByTagName('tr').item(" + std::to_string(i) + ").cells[2].innerHTML";
+		JSValueRef AppName = GLRBrowserView->EvaluateScript(Script.c_str());
+
+		//Set our AppID
+		Temp.AppID = static_cast<int>(JSValueToNumber(GLRBrowserView->js_context(), AppID, nullptr));
+
+		//Set the Type
+		Temp.Type = GetStringFromJSString(JSValueToStringCopy(GLRBrowserView->js_context(), AppType, nullptr));
+
+		//Set the Name
+		Temp.Name = GetStringFromJSString(JSValueToStringCopy(GLRBrowserView->js_context(), AppName, nullptr));
+
+		//Add it to our list
+		TempList.emplace_back(Temp);
+	}
+
+	return TempList;
+}
+
+std::string HeadlessBrowserManager::GetStringFromJSString(JSStringRef str)
+{
+	// Get UTF-8 C-String from JSString and copy it into our string value 
+	size_t len = JSStringGetMaximumUTF8CStringSize(str);	// First we determin how large the arreay will be
+	char* buffer = new char[len];							// Then we create a new char array with our found length
+	JSStringGetUTF8CString(str, buffer, len);				// Create a UTF8Ctring with all of our found data
+	std::string result = std::string(buffer, len);			// Copy it into ur STD::String
+	delete[] buffer;										// Delete Allocated Memory
+	JSStringRelease(str);
+
+	return result;
+}
 
 void HeadlessBrowserManager::OnFinishLoading(View* caller)
 {
 	//Force the page to load all elements up to 1000
-	caller->EvaluateScript("$('select[name=table-sortable_length]').val('1000').change()");
+	GLRBrowserView->EvaluateScript("$('select[name=table-sortable_length]').val('1000').change()");
+
+	//Render out an image for testing purposes
 	GLRBrowserRenderer->Render();
 	GLRBrowserView->bitmap()->WritePNG("result.png");
 
-	//We are done, and most likely OnDOMReady will be called afterwards
+	//Tell our loop we are done
 	IsDone = true;
 }
 

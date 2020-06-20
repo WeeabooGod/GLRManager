@@ -2,13 +2,6 @@
 #include <string>
 #include <chrono>
 
-struct Game
-{
-	bool operator==(const Game& rhs) const { return this->AppID == rhs.AppID;}
-	std::string Name;
-	unsigned int AppID{};
-};
-
 std::string BrowseForFolder();
 
 bool DoesPathExist(const std::string& dirPath);

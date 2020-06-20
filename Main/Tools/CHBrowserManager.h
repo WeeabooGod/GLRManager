@@ -1,4 +1,5 @@
 #pragma once
+#include "../Tools/DataType/GameStruc.h"
 #include <Ultralight/Ultralight.h>
 #include <AppCore/JSHelpers.h>
 #include <string>
@@ -13,9 +14,11 @@ public:
 	HeadlessBrowserManager();
 	virtual ~HeadlessBrowserManager();
 
-	void SearchSteamDB(const std::string& SearchWord);
 	void Run();
-	//void CreateList();
+	void SearchSteamDB(const std::string& SearchWord);
+	std::vector<Game> GetList();
 
+	std::string GetStringFromJSString(JSStringRef str);
+	
 	void OnFinishLoading(ultralight::View* caller) override;
 };

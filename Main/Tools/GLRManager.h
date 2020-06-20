@@ -1,5 +1,5 @@
 #pragma once
-#include "Helpers.h"
+#include "../Tools/DataType/GameStruc.h"
 #include "simdjson.h"
 #include <string>
 #include <vector>
