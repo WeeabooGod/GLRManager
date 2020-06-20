@@ -23,12 +23,14 @@ project "GLRManager"
 		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
 		"Libraries/simdjson",
+		"Libraries/UltralightHeadless/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
 		"Libraries/cUrl/lib",
 		"Libraries/Freetype/lib",
+		"Libraries/UltralightHeadless/lib",
 	}
 
     files {
@@ -52,6 +54,10 @@ project "GLRManager"
 			"advapi32",
 			"libcurl_a_debug",
 			"freetype",
+			"Ultralight",
+			"UltralightCore",
+			"WebCore",
+			"AppCore",
 		}
 		
     filter "configurations:Release"
@@ -70,6 +76,10 @@ project "GLRManager"
 			"advapi32",
 			"libcurl_a",
 			"freetype",
+			"Ultralight",
+			"UltralightCore",
+			"WebCore",
+			"AppCore",
 		}
 ------------------------------------------------ Libraries Project
 project "Libraries"
@@ -83,12 +93,14 @@ project "Libraries"
 		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
 		"Libraries/simdjson",
+		"Libraries/UltralightHeadless/include",
     }
 	
 	libdirs {
 		"Libraries/OpenGL/GLFW/lib-vc2019",
 		"Libraries/cUrl/lib",
 		"Libraries/Freetype/lib",
+		"Libraries/UltralightHeadless/lib",
 	}
 
     files {
@@ -97,6 +109,7 @@ project "Libraries"
 		"Libraries/cUrl/**",
 		"Libraries/Freetype/**",
 		"Libraries/simdjson/**",
+		"Libraries/UltralightHeadless/**",
     }
 	
 	filter "configurations:Debug"

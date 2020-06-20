@@ -5,34 +5,32 @@
 
 //Pretty much a list of all headers will be in helpers
 #include "Tools/Helpers.h"
-#include "Tools/UserProfileManager.h"
-#include "Tools/FreeTypeFont.h"
+#include "Tools/GLRManager.h"
+#include "Tools/CHBrowserManager.h"
 
 #include <thread>
 #include <vector>
-
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	//Create the programs overall profile
-	UserProfile GLRProfile;
-
+	//Create the 
+	GLRManager GLRManager;
 
     //Setup the GL
-    ImguiOpenGL GLRManager(GLRProfile.GetProgramName());
+    ImguiOpenGL ImguiManager(GLRManager.GetProgramName());
 
 	//Vairables used within the loops
-    std::vector<Game> SelectedGames; 	//A list of GameAPPID we would have selected
+    std::vector<Game> SelectedGames; 	  //A list of GameAPPID we would have selected
     static std::vector<int> selected;     //A IMGUI Selected List to highlight stuff in Column
-	static int lastSelected = 0;                //Used mostly to allow for shift select
+	static int lastSelected = 0;          //Used mostly to allow for shift select
 	
     // Main loop
-    while (!glfwWindowShouldClose(GLRManager.GetWindow()))
+    while (!glfwWindowShouldClose(ImguiManager.GetWindow()))
     {
         // Start the Dear ImGui frame
-        GLRManager.SetupImGuiFrame();
+        ImguiManager.SetupImGuiFrame();
 
     	//Ask for Path if there is no path
-        if (GLRProfile.GetGreenlumaPath().empty())
+        if (GLRManager.GetGreenlumaPath().empty())
         {
             ImGui::OpenPopup("Find Greenluma Path");
         	
@@ -57,10 +55,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 if (ImGui::Button("Done"))
                 {
                 	//Set the path we have happened to get. If there wasn't any to begin with then no worries.
-                    GLRProfile.SetGreenlumaPath(pathInput);
+                    GLRManager.SetGreenlumaPath(pathInput);
                 	
                 	//Only end if there is even a "valid" (not nessesarily correct) path
-                	if (!GLRProfile.GetGreenlumaPath().empty())
+                	if (!GLRManager.GetGreenlumaPath().empty())
                 	{
                         ImGui::CloseCurrentPopup();
                 	}
@@ -96,17 +94,17 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             ImGui::BeginChild(child_id, ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true, child_flags);
 
     		//Here is where we can display logs
-    		for (int i = 0; i < GLRProfile.GetLogText().size(); i++)
+    		for (int i = 0; i < GLRManager.GetLogText().size(); i++)
     		{
-    			if (i == GLRProfile.GetLogText().size() - 1)
+    			if (i == GLRManager.GetLogText().size() - 1)
     			{
     				//Normal White Color
-    				ImGui::Text(GLRProfile.GetLogText()[i].c_str());
+    				ImGui::Text(GLRManager.GetLogText()[i].c_str());
     			}
                 else
                 {
                 	//Render at half color
-	                ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,1), GLRProfile.GetLogText()[i].c_str());
+	                ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,1), GLRManager.GetLogText()[i].c_str());
                 }
     			ImGui::SetScrollHere(1.0f);
     		}
@@ -134,7 +132,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 	        	if (!SearchKeys.empty())
 	        	{
-	        		GLRProfile.SearchListWithKey(SearchKeys);
+	        		//GLRProfile.SearchListWithKey(SearchKeys);
 	        		SelectedGames.clear();
 	        		selected.clear();
 	        	}
@@ -155,19 +153,19 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         	ImGui::Separator();
 
         	//Set all items not selected
-        	for (int i = 0; i <  GLRProfile.GetGameListSize(); i++)
+        	for (int i = 0; i <  GLRManager.GetGameListSize(); i++)
         	{
         		selected.push_back(-1);
         	}
-        	for (int i = 0; i < GLRProfile.GetGameListSize(); i++)
+        	for (int i = 0; i < GLRManager.GetGameListSize(); i++)
         	{
-        		if (ImGui::Selectable(GLRProfile.GetGameAppIDDOfIndex(i).c_str(), selected[i] == i, ImGuiSelectableFlags_SpanAllColumns))
+        		if (ImGui::Selectable(GLRManager.GetGameAppIDDOfIndex(i).c_str(), selected[i] == i, ImGuiSelectableFlags_SpanAllColumns))
         		{
         			if (selected[i] == i)
         			{
         				//Deselecting
         				selected[i] = -1;
-        				auto iter = std::find(SelectedGames.begin(), SelectedGames.end(), GLRProfile.GetGameOfIndex(i));
+        				auto iter = std::find(SelectedGames.begin(), SelectedGames.end(), GLRManager.GetGameOfIndex(i));
         				if (iter != SelectedGames.end())
         				{
         					SelectedGames.erase(iter);
@@ -177,11 +175,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                     {
                     	//Selecting
 						selected[i] = i;
-                    	SelectedGames.push_back(GLRProfile.GetGameOfIndex(i));
+                    	SelectedGames.push_back(GLRManager.GetGameOfIndex(i));
                     }
         		}
         		ImGui::NextColumn();
-        		ImGui::Text(GLRProfile.GetGameNameOfIndex(i).c_str()); ImGui::NextColumn();
+        		ImGui::Text(GLRManager.GetGameNameOfIndex(i).c_str()); ImGui::NextColumn();
         	}
         	ImGui::Columns(1);
     		ImGui::End();
@@ -191,14 +189,14 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	{
     		if (ImGui::Button("Add Games"))
     		{
-    			GLRProfile.SetProfileGames(SelectedGames);
+    			GLRManager.SetProfileGames(SelectedGames);
     			SelectedGames.clear();
     			selected.clear();
     		}
             ImGui::SameLine((ImGui::GetWindowWidth() - (ImGui::CalcTextSize("BlackList Games").x * 1.15f)));
             if (ImGui::Button("BlackList Games"))
             {
-	            GLRProfile.SetBlacklistGames(SelectedGames);
+	            GLRManager.SetBlacklistGames(SelectedGames);
             	SelectedGames.clear();
             	selected.clear();
             }
@@ -209,14 +207,14 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         EndDockspace();
 
         //Finish Doing things and render to Screen
-        GLRManager.RenderImGui();
+        ImguiManager.RenderImGui();
     }
 
     // Cleanup
-    GLRManager.CleanupImGuiGL();
+    ImguiManager.CleanupImGuiGL();
 
 	//Make sure we properly write all of our vairables back into our config.
-    GLRProfile.WriteToConfig();
+    GLRManager.WriteToConfig();
 	
     return 0;
 }
