@@ -1,11 +1,13 @@
 #pragma once
-#include "../Tools/DataType/GameStruc.h"
 #include <Ultralight/Ultralight.h>
-#include <AppCore/JSHelpers.h>
+#include <AppCore/AppCore.h>
+#include <JavaScriptCore/JavaScript.h>
+
+#include "../Tools/DataType/GameStruc.h"
 #include <string>
 #include <vector>
 
-class HeadlessBrowserManager : public ultralight::LoadListener
+class HeadlessBrowserManager final : public ultralight::LoadListener
 {
 	ultralight::RefPtr<ultralight::Renderer> GLRBrowserRenderer;
 	ultralight::RefPtr<ultralight::View> GLRBrowserView;
@@ -21,4 +23,7 @@ public:
 	std::string GetStringFromJSString(JSStringRef str);
 	
 	void OnFinishLoading(ultralight::View* caller) override;
+	
+	void OnUpdateHistory(ultralight::View* caller) override;
+	void OnDOMReady(ultralight::View* caller) override;
 };

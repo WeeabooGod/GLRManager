@@ -61,6 +61,6 @@ public:
 
 	void GetProfilesInDirectory();
 	
-	void SearchListWithKey(std::string& SearchKey);
+	void AppendGameList(std::vector<Game> GeneratedList);
 
 };

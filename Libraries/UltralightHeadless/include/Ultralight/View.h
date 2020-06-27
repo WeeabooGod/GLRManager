@@ -9,7 +9,7 @@
 ///
 /// Website: <http://ultralig.ht>
 ///
-/// Copyright (C) 2019 Ultralight, Inc. All rights reserved.
+/// Copyright (C) 2020 Ultralight, Inc. All rights reserved.
 ///
 #pragma once
 #include <JavaScriptCore/JavaScript.h>
@@ -21,6 +21,7 @@
 #include <Ultralight/RenderTarget.h>
 #include <Ultralight/Bitmap.h>
 #include <Ultralight/Listener.h>
+#include <Ultralight/platform/Surface.h>
 
 namespace ultralight {
 
@@ -44,12 +45,12 @@ public:
   virtual String title() = 0;
 
   ///
-  /// Get the width of the View, in device coordinates.
+  /// Get the width of the View, in pixels.
   ///
   virtual uint32_t width() const = 0;
 
   ///
-  /// Get the height of the View, in device coordinates.
+  /// Get the height of the View, in pixels.
   ///
   virtual uint32_t height() const = 0;
 
@@ -61,32 +62,24 @@ public:
   ///
   /// Get the RenderTarget for the View.
   ///
-  /// @note  The RenderTarget is only used when you define a custom GPUDriver.
+  /// @note  Only valid when the GPU renderer is enabled in Config.
   ///
-  ///        During each call to Renderer::Render, each View will be drawn to
-  ///        an offscreen texture/render-buffer. You should use RenderTarget
-  ///        to obtain the internal texture ID for the View and then display
-  ///        it in some quad (eg, call  GPUDriver::BindTexture with the texture
-  ///        ID, then draw a textured quad in your 3D engine, making sure to
-  ///        use the UV coords specified in the RenderTarget).
-  ///
-  ///        @see Overlay.cpp within the AppCore source for an example.
+  ///        You can use this with your GPUDriver implementation to bind
+  ///        and display the corresponding texture in your application.
   ///
   virtual RenderTarget render_target() = 0;
 
   ///
-  /// Check if bitmap is dirty (has changed since last call to View::bitmap)
+  /// Get the Surface for the View (native pixel buffer container).
   ///
-  /// @note  Only valid when using the default, offscreen GPUDriver.
+  /// @note  Only valid when the GPU renderer is disabled in Config.
   ///
-  virtual bool is_bitmap_dirty() = 0;
-
+  ///        (Will return a nullptr when the GPU renderer is enabled.)
   ///
-  /// Get the bitmap for the View (calling this resets the dirty state).
+  ///        The default Surface is BitmapSurface but you can provide your
+  ///        own Surface implementation via Platform::set_surface_factory.
   ///
-  // @note  Only valid when using the default, offscreen GPUDriver.
-  ///
-  virtual RefPtr<Bitmap> bitmap() = 0;
+  virtual Surface* surface() = 0;
 
   ///
   /// Load a raw string of HTML, the View will navigate to it as a new page.
@@ -97,20 +90,18 @@ public:
   /// Load a URL, the View will navigate to it as a new page.
   ///
   /// @note  You can use File URLs (eg, file:///page.html) but you must define
-  ///        your own FileSystem implementation. @see Platform::set_file_system
+  ///        your own FileSystem implementation if you are not using AppCore.
+  ///        @see Platform::set_file_system
   ///
   virtual void LoadURL(const String& url) = 0;
 
   ///
   /// Resize View to a certain size.
   ///
-  /// @param  width   The initial width, in device coordinates.
+  /// @param  width   The initial width, in pixels.
   /// 
-  /// @param  height  The initial height, in device coordinates.
+  /// @param  height  The initial height, in pixels.
   ///
-  /// @note  The device coordinates are scaled to pixels by multiplying them
-  ///        with the current DPI scale (@see Config::device_scale_hint) and
-  ///        rounding to the nearest integer value.
   ///
   virtual void Resize(uint32_t width, uint32_t height) = 0;
 
@@ -167,6 +158,36 @@ public:
   /// Stop all page loads
   ///
   virtual void Stop() = 0;
+
+  ///
+  /// Give focus to the View.
+  ///
+  /// You should call this to give visual indication that the View has input
+  /// focus (changes active text selection colors, for example).
+  ///
+  virtual void Focus() = 0;
+
+  ///
+  /// Remove focus from the View and unfocus any focused input elements.
+  ///
+  /// You should call this to give visual indication that the View has lost
+  /// input focus.
+  ///
+  virtual void Unfocus() = 0;
+
+  ///
+  /// Whether or not the View has focus.
+  ///
+  virtual bool HasFocus() = 0;
+
+  ///
+  /// Whether or not the View has an input element with visible keyboard focus
+  /// (indicated by a blinking caret).
+  ///
+  /// You can use this to decide whether or not the View should consume
+  /// keyboard input events (useful in games with mixed UI and key handling).
+  ///
+  virtual bool HasInputFocus() = 0;
   
   ///
   /// Fire a keyboard event

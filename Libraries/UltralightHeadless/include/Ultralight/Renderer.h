@@ -9,11 +9,12 @@
 ///
 /// Website: <http://ultralig.ht>
 ///
-/// Copyright (C) 2019 Ultralight, Inc. All rights reserved.
+/// Copyright (C) 2020 Ultralight, Inc. All rights reserved.
 ///
 #pragma once
 #include <Ultralight/Defines.h>
 #include <Ultralight/RefPtr.h>
+#include <Ultralight/Session.h>
 #include <Ultralight/View.h>
 
 namespace ultralight {
@@ -44,24 +45,46 @@ public:
   static Ref<Renderer> Create();
 
   ///
+  /// Create a Session to store local data in (such as cookies, local storage,
+  /// application cache, indexed db, etc).
+  ///
+  /// @note  A default, persistent Session is already created for you. You
+  ///        only need to call this if you want to create private, in-memory
+  ///        session or use a separate session for each View.
+  ///
+  /// @param  is_persistent  Whether or not to store the session on disk.
+  ///                        Persistent sessions will be written to the path
+  ///                        set in Config::cache_path
+  ///
+  /// @param  name  A unique name for this session, this will be used to
+  ///               generate a unique disk path for persistent sessions.
+  ///
+  virtual Ref<Session> CreateSession(bool is_persistent, const String& name) = 0;
+  
+  ///
+  /// Get the default Session. This session is persistent (backed to disk) and
+  /// has the name "default".
+  ///
+  virtual Ref<Session> default_session() = 0;
+
+  ///
   /// Create a new View.
   ///
-  /// @param  width   The initial width, in device coordinates.
+  /// @param  width   The initial width, in pixels.
   /// 
-  /// @param  height  The initial height, in device coordinates.
+  /// @param  height  The initial height, in pixels.
   ///
   /// @param  transparent  Whether or not the view background is transparent.
+  ///
+  /// @param  session  The session to store local data in. Pass a nullptr to
+  ///                  use the default session.
   ///
   /// @return  Returns a ref-pointer to a new View instance. You should assign
   ///          it to either a Ref<View> (non-nullable) or RefPtr<View>
   ///          (nullable).
   ///
-  /// @note  The device coordinates are scaled to pixels by multiplying them
-  ///        with the current DPI scale (@see Config::device_scale_hint) and
-  ///        rounding to the nearest integer value.
-  ///
   virtual Ref<View> CreateView(uint32_t width, uint32_t height,
-	                           bool transparent) = 0;
+	                             bool transparent, RefPtr<Session> session) = 0;
 
   ///
   /// Update timers and dispatch internal callbacks. You should call this often
@@ -72,9 +95,6 @@ public:
   ///
   /// Render all active views to display lists and dispatch calls to GPUDriver.
   ///
-  /// @note  If you're using the default, offscreen GL driver, this updates the
-  ///        internal bitmap of each View (@see View::bitmap).
-  ///
   virtual void Render() = 0;
 
   ///
@@ -82,6 +102,11 @@ public:
   /// callbacks or driver code.
   ///
   virtual void PurgeMemory() = 0;
+
+  ///
+  /// Print detailed memory usage statistics to the log.
+  ///
+  virtual void LogMemoryUsage() = 0;
 
 protected:
   virtual ~Renderer();

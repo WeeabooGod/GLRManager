@@ -9,7 +9,7 @@
 ///
 /// Website: <http://ultralig.ht>
 ///
-/// Copyright (C) 2019 Ultralight, Inc. All rights reserved.
+/// Copyright (C) 2020 Ultralight, Inc. All rights reserved.
 ///
 #ifndef ULTRALIGHT_CAPI_H
 #define ULTRALIGHT_CAPI_H
@@ -49,6 +49,7 @@ extern "C" {
 
 typedef struct C_Config* ULConfig;
 typedef struct C_Renderer* ULRenderer;
+typedef struct C_Session* ULSession;
 typedef struct C_View* ULView;
 typedef struct C_Bitmap* ULBitmap;
 typedef struct C_String* ULString;
@@ -165,6 +166,30 @@ typedef enum {
  *****************************************************************************/
 
 /******************************************************************************
+ * Version
+ *****************************************************************************/
+
+///
+/// Get the version string of the library in MAJOR.MINOR.PATCH format.
+///
+ULExport const char* ulVersionString();
+
+///
+/// Get the numeric major version of the library.
+///
+ULExport unsigned int ulVersionMajor();
+
+///
+/// Get the numeric minor version of the library.
+///
+ULExport unsigned int ulVersionMinor();
+
+///
+/// Get the numeric patch version of the library.
+///
+ULExport unsigned int ulVersionPatch();
+
+/******************************************************************************
  * Config
  *****************************************************************************/
 
@@ -179,6 +204,25 @@ ULExport ULConfig ulCreateConfig();
 ULExport void ulDestroyConfig(ULConfig config);
 
 ///
+/// Set the file path to the directory that contains Ultralight's bundled
+/// resources (eg, cacert.pem and other localized resources). 
+///
+ULExport void ulConfigSetResourcePath(ULConfig config, ULString resource_path);
+
+///
+/// Set the file path to a writable directory that will be used to store
+/// cookies, cached resources, and other persistent data.
+///
+ULExport void ulConfigSetCachePath(ULConfig config, ULString cache_path);
+
+///
+/// Set the amount that the application DPI has been scaled, used for
+/// scaling device coordinates to pixels and oversampling raster shapes
+/// (Default = 1.0).
+///
+ULExport void ulConfigSetDeviceScale(ULConfig config, double value);
+
+///
 /// Set whether images should be enabled (Default = True).
 ///
 ULExport void ulConfigSetEnableImages(ULConfig config, bool enabled);
@@ -187,20 +231,6 @@ ULExport void ulConfigSetEnableImages(ULConfig config, bool enabled);
 /// Set whether JavaScript should be eanbled (Default = True).
 ///
 ULExport void ulConfigSetEnableJavaScript(ULConfig config, bool enabled);
-
-///
-/// Set whether we should use BGRA byte order (instead of RGBA) for View
-/// bitmaps (Default = False).
-///
-ULExport void ulConfigSetUseBGRAForOffscreenRendering(ULConfig config,
-                                                      bool enabled);
-
-///
-/// Set the amount that the application DPI has been scaled, used for
-/// scaling device coordinates to pixels and oversampling raster shapes
-/// (Default = 1.0).
-///
-ULExport void ulConfigSetDeviceScaleHint(ULConfig config, double value);
 
 ///
 /// Set default font-family to use (Default = Times New Roman).
@@ -279,19 +309,65 @@ ULExport void ulDestroyRenderer(ULRenderer renderer);
 ULExport void ulUpdate(ULRenderer renderer);
 
 ///
-/// Render all active Views to their respective bitmaps.
+/// Render all active Views.
 ///
 ULExport void ulRender(ULRenderer renderer);
+
+/******************************************************************************
+ * Session
+ *****************************************************************************/
+
+///
+/// Create a Session to store local data in (such as cookies, local storage,
+/// application cache, indexed db, etc).
+///
+ULExport ULSession ulCreateSession(ULRenderer renderer, bool is_persistent,
+                                   ULString name);
+
+///
+/// Destroy a Session.
+///
+ULExport void ulDestroySession(ULSession session);
+
+///
+/// Get the default session (persistent session named "default").
+///
+/// @note  This session is owned by the Renderer, you shouldn't destroy it.
+///
+ULExport ULSession ulDefaultSession(ULRenderer renderer);
+
+///
+/// Whether or not is persistent (backed to disk).
+///
+ULExport bool ulSessionIsPersistent(ULSession session);
+
+///
+/// Unique name identifying the session (used for unique disk path).
+///
+ULExport ULString ulSessionGetName(ULSession session);
+
+///
+/// Unique numeric Id for the session.
+///
+ULExport unsigned long long ulSessionGetId(ULSession session);
+
+///
+/// The disk path to write to (used by persistent sessions only).
+///
+ULExport ULString ulSessionGetDiskPath(ULSession session);
 
 /******************************************************************************
  * View
  *****************************************************************************/
 
 ///
-/// Create a View with certain size (in device coordinates).
+/// Create a View with certain size (in pixels).
+///
+/// @note  You can pass null to 'session' to use the default session.
 ///
 ULExport ULView ulCreateView(ULRenderer renderer, unsigned int width,
-                             unsigned int height, bool transparent);
+                             unsigned int height, bool transparent,
+                             ULSession session);
 
 ///
 /// Destroy a View.
@@ -318,18 +394,6 @@ ULExport ULString ulViewGetTitle(ULView view);
 ULExport bool ulViewIsLoading(ULView view);
 
 ///
-/// Check if bitmap is dirty (has changed since last call to ulViewGetBitmap).
-///
-ULExport bool ulViewIsBitmapDirty(ULView view);
-
-///
-/// Get bitmap (will reset the dirty flag).
-///
-/// @note Don't destroy the returned bitmap, it is owned by the View.
-///
-ULExport ULBitmap ulViewGetBitmap(ULView view);
-
-///
 /// Load a raw string of HTML.
 ///
 ULExport void ulViewLoadHTML(ULView view, ULString html_string);
@@ -340,7 +404,7 @@ ULExport void ulViewLoadHTML(ULView view, ULString html_string);
 ULExport void ulViewLoadURL(ULView view, ULString url_string);
 
 ///
-/// Resize view to a certain width and height (in device coordinates).
+/// Resize view to a certain width and height (in pixels).
 ///
 ULExport void ulViewResize(ULView view, unsigned int width,
                            unsigned int height);

@@ -3,15 +3,19 @@
 #include "Startup/SetupDockspace.h"
 
 
-//Pretty much a list of all headers will be in helpers
+//Other important stuff we need
 #include "Tools/Helpers.h"
 #include "Tools/GLRManager.h"
 #include "Tools/CHBrowserManager.h"
 
+//Final smaller stuff required as well
 #include <thread>
 #include <vector>
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	//This will be our browser for use of webscraping
+	HeadlessBrowserManager GLRBrowser;
+	
 	//Create the 
 	GLRManager GLRManager;
 
@@ -128,11 +132,17 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         	
 	        if (ImGui::Button("Search"))
 	        {
-		        std::string SearchKeys = pathInput;
+		        std::string SearchWords = pathInput;
 
-	        	if (!SearchKeys.empty())
+	        	if (!SearchWords.empty())
 	        	{
-	        		//GLRProfile.SearchListWithKey(SearchKeys);
+	        		//Initiate a browser search based on our search keys.
+	        		GLRBrowser.SearchSteamDB(SearchWords);
+
+	        		//Give our list to our GLRManager
+	        		GLRManager.AppendGameList(GLRBrowser.GetList());
+	        		
+	        		//Clear any previous selections
 	        		SelectedGames.clear();
 	        		selected.clear();
 	        	}

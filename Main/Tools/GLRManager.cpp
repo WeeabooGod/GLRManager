@@ -270,22 +270,17 @@ bool SortByAppIDAcending(const Game& lhs, const Game& rhs)
 	return lhs.AppID < rhs.AppID;
 }
 
-void GLRManager::SearchListWithKey(std::string& SearchKey)
+void GLRManager::AppendGameList(std::vector<Game> GeneratedList)
 {
-	////Clear list just in case
-	//GamesList.clear();
-	//
-	////Create a vector of words in our search
-	//std::vector<std::string> SearchWords;
-	//std::istringstream iss(SearchKey);
-	//for (std::string s; iss >> s;)
-	//	SearchWords.push_back(s);
+	//Clear list we have already.
+	GamesList.clear();
 
-	//////Give SearchWords to load Webpage, then run our Headless Browser.
-	//////Create the headless Browser
-	////HeadlessBrowserManager SteamSearcher(SearchWords);
-	////SteamSearcher.Run();
-	//
-	//LogText.emplace_back("> Found " + std::to_string(GamesList.size()) + " entries that matched the search.");
-	//std::sort(GamesList.begin(), GamesList.end(), SortByAppIDAcending);
+	//Copy our GameList with our Generated List
+	GamesList = GeneratedList;
+
+	//Sort it by AppID just in case.
+	std::sort(GamesList.begin(), GamesList.end(), SortByAppIDAcending);
+
+	//Make a Log Post
+	LogText.emplace_back("> Found " + std::to_string(GamesList.size()) + " entries that matched the search.");
 }
