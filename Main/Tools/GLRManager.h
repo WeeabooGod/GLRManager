@@ -16,9 +16,9 @@ class GLRManager
 	std::string UserConfigPath = "";
 	std::string UserProfilePath = "";
 
-	//Default values when no Config exists
+	//Default values when no Config exists, can be changed anyways
 	std::string ProgramName = "Greenluma Reborn Manager";
-	std::string ProgramVersion = "0.0.8";
+	std::string ProgramVersion = "0.1.5";
 	std::string GreenlumaPath = "";
 	std::string LastProfileName = "";
 
@@ -28,7 +28,6 @@ class GLRManager
 	//Profile Variables
 	std::vector<Game> CurrentProfileGames;
 	std::string CurrentProfileName;
-	std::vector<Game> BlacklistedGames;
 
 	//Profiles list
 	std::vector<std::string> ProfileNamesList;
@@ -51,13 +50,15 @@ public:
 	int GetGameListSize();
 	std::string GetGameNameOfIndex(int index);
 	std::string GetGameAppIDDOfIndex(int index);
+	std::string GetGameTypeOfIndex(int index);
+	void FilterGames(bool WGames, bool WApplications, bool WMedia, bool WOther);
+	
 	Game GetGameOfIndex(int index);
 
 	//Profile Member Functions
 	void LoadProfile(const std::string& ProfileName);
 	void SaveProfile(const std::string& ProfileName);
-	void SetProfileGames(std::vector<Game> GameList);
-	void SetBlacklistGames(std::vector<Game> GameList);
+	void SetProfileGames(const std::vector<Game>& GameList);
 
 	void GetProfilesInDirectory();
 	

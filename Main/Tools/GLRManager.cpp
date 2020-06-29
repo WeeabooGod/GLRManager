@@ -5,6 +5,7 @@
 #include <direct.h>
 #include <fstream>
 #include <filesystem>
+#include <utility>
 
 #include "Helpers.h"
 
@@ -22,11 +23,11 @@ GLRManager::GLRManager()
 
     //Replace the double backslash with forward slashes and add our program File to the end of it
     replace(UserAppLocalPath.begin(), UserAppLocalPath.end(), '\\', '/');
-    UserAppLocalPath += "/GLRAppManager/";
 
+	//Set the paths
+	UserAppLocalPath += "/GLRAppManager/";
 	UserConfigPath = UserAppLocalPath + "Config.json";
 	UserProfilePath = UserAppLocalPath + "Profiles/";
-
 
 	//Does the path even exist? If it doesn't, create it using _mkdir
 	if (!DoesPathExist(UserAppLocalPath))
@@ -40,13 +41,7 @@ GLRManager::GLRManager()
         _mkdir((UserProfilePath.c_str()));
     }
 
-	//Does the MasterAppList Directory Exist
-	if (!DoesPathExist(UserAppLocalPath + "MasterAppList/"))
-	{
-		_mkdir(((UserAppLocalPath + "MasterAppList/").c_str()));
-	}
 	
-
 	//Does a Config file exist? If not create it with our default variables
     if (!DoesFileExist(UserConfigPath))
     {
@@ -65,7 +60,6 @@ GLRManager::GLRManager()
 	//Load the Profiles
 	GetProfilesInDirectory();		// Get all profiles in directory
 	LoadProfile(LastProfileName);	// Load the last profile, defaults to "default" if there was none
-	LoadProfile("Blacklist");		// Loads the blacklist file
 }
 
 std::string GLRManager::GetJSONFile(const std::string& Path)
@@ -136,6 +130,75 @@ std::string GLRManager::GetGameAppIDDOfIndex(int index)
 	return std::to_string(GamesList[index].AppID);
 }
 
+std::string GLRManager::GetGameTypeOfIndex(int index)
+{
+	return GamesList[index].Type;
+}
+
+void GLRManager::FilterGames(bool WGames, bool WApplications, bool WMedia, bool WOther)
+{
+	//Fill the list with the whitelist
+	std::vector<std::string> WhiteList;
+
+	int AmountFiltered = 0;
+	
+	if (WGames)
+	{
+		WhiteList.emplace_back("Game");
+		WhiteList.emplace_back("DLC");
+		WhiteList.emplace_back("Demo");
+	}
+
+	if (WApplications)
+	{
+		WhiteList.emplace_back("Application");
+		WhiteList.emplace_back("Tool");
+		//WhiteList.emplace_back("Application");
+		//WhiteList.emplace_back("Application");
+	}
+
+	if (WMedia)
+	{
+		WhiteList.emplace_back("Legacy Media");
+		WhiteList.emplace_back("Music");
+		WhiteList.emplace_back("Guide");
+		WhiteList.emplace_back("Video");
+		WhiteList.emplace_back("Series");
+	}
+
+	//Go through and see if the words match, if it matches anything its good
+	for (int i = 0; i < GamesList.size(); i++)
+	{
+		bool match = false;
+		for (auto wType : WhiteList)
+		{
+			if (wType == GamesList[i].Type)
+			{
+				match = true;
+				break;
+			}
+		}
+
+		//If we get to this point and nothing matched, but we have other selected, we can safetly assume that anything goes
+		if (match == false && WOther)
+			match = true;
+
+		//Get rid of the match
+		if (!match)
+		{
+			auto iter = std::find(GamesList.begin(), GamesList.end(), GamesList[i]);
+		    if (iter != GamesList.end())
+		    {
+			    GamesList.erase(iter);
+		    	AmountFiltered++;
+		    }
+		}
+		
+	}
+
+	LogText.emplace_back("> Filtered " + std::to_string(AmountFiltered) + " games from list.");
+}
+
 Game GLRManager::GetGameOfIndex(int index)
 {
 	return GamesList[index];
@@ -143,10 +206,7 @@ Game GLRManager::GetGameOfIndex(int index)
 
 void GLRManager::LoadProfile(const std::string& ProfileName)
 {
-	if (ProfileName == "Blacklist")
-		BlacklistedGames.clear();
-	else
-		CurrentProfileGames.clear();
+	CurrentProfileGames.clear();
 
 	if (!ProfileName.empty())
 	{
@@ -163,10 +223,7 @@ void GLRManager::LoadProfile(const std::string& ProfileName)
 			    temp.AppID = static_cast<int>(element["AppID"].get<double>());
 			    temp.Name = std::string_view(element["name"]);
 				
-				if (ProfileName == "Blacklist")
-					BlacklistedGames.push_back(temp);
-				else
-					CurrentProfileGames.push_back(temp);
+				CurrentProfileGames.push_back(temp);
 			}
 		}
 		
@@ -180,12 +237,12 @@ void GLRManager::SaveProfile(const std::string& ProfileName)
 	std::basic_string<char> NewProfile = R"({
 	"GamesList":  [)";
 
-	for (int i = 0; i < BlacklistedGames.size(); i++)
+	for (int i = 0; i < CurrentProfileGames.size(); i++)
 	{
 		NewProfile += R"(
-		{ "name": ")" + BlacklistedGames[i].Name + R"(", "AppID":)" + std::to_string(BlacklistedGames[i].AppID);
+		{ "name": ")" + CurrentProfileGames[i].Name + R"(", "AppID":)" + std::to_string(CurrentProfileGames[i].AppID);
 
-		if (i != BlacklistedGames.size() - 1)
+		if (i != CurrentProfileGames.size() - 1)
 		{
 			NewProfile += R"(},)";
 		}
@@ -199,7 +256,7 @@ void GLRManager::SaveProfile(const std::string& ProfileName)
 })";
 
 	//Save what ever we have made modifications to into our json
-	std::ofstream ProfileFile(UserProfilePath + "Blacklist.json");
+	std::ofstream ProfileFile(UserProfilePath + ProfileName);
 	ProfileFile << NewProfile;
 	ProfileFile.close();
 
@@ -207,9 +264,9 @@ void GLRManager::SaveProfile(const std::string& ProfileName)
 	LoadProfile(ProfileName);
 }			
 
-void GLRManager::SetProfileGames(std::vector<Game> GameList)
+void GLRManager::SetProfileGames(const std::vector<Game>& GameList)
 {
-	for (auto Game : GameList)
+	for (const auto& Game : GameList)
 	{
 		if (std::find(CurrentProfileGames.begin(), CurrentProfileGames.end(), Game) == CurrentProfileGames.end())
 		{
@@ -219,33 +276,6 @@ void GLRManager::SetProfileGames(std::vector<Game> GameList)
 	}
 
 	SaveProfile(CurrentProfileName);
-}
-
-void GLRManager::SetBlacklistGames(std::vector<Game> GameList)
-{
-	std::vector<Game> NewList;
-	
-	for (auto Game : GameList)
-	{
-		if (std::find(BlacklistedGames.begin(), BlacklistedGames.end(), Game) == BlacklistedGames.end())
-		{
-			//The game was not already in the list
-			BlacklistedGames.push_back(Game);
-		}
-	}
-
-	//Make a new list that now does not include the blacklisted games
-	for (auto List : GamesList)
-	{
-		if (std::find(BlacklistedGames.begin(), BlacklistedGames.end(), List) == BlacklistedGames.end())
-		{
-			//The game was not already in the list
-			NewList.push_back(List);
-		}
-	}
-	GamesList = NewList;
-
-	SaveProfile("Blacklist");
 }
 
 void GLRManager::GetProfilesInDirectory()
@@ -276,10 +306,10 @@ void GLRManager::AppendGameList(std::vector<Game> GeneratedList)
 	GamesList.clear();
 
 	//Copy our GameList with our Generated List
-	GamesList = GeneratedList;
+	GamesList = std::move(GeneratedList);
 
 	//Sort it by AppID just in case.
-	std::sort(GamesList.begin(), GamesList.end(), SortByAppIDAcending);
+	//std::sort(GamesList.begin(), GamesList.end(), SortByAppIDAcending);
 
 	//Make a Log Post
 	LogText.emplace_back("> Found " + std::to_string(GamesList.size()) + " entries that matched the search.");
