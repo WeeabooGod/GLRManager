@@ -60,7 +60,7 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
 	io.Fonts->AddFontFromFileTTF("Tools/Fonts/ProggyTiny.ttf", 10.0f);
 	io.Fonts->AddFontDefault();
 
-	io.IniFilename = nullptr;
+	io.IniFilename = "DockConfig";
 }
 
 void ImguiOpenGL::SetupImGuiFrame()

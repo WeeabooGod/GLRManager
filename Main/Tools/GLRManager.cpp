@@ -259,7 +259,7 @@ void GLRManager::SaveProfile(const std::string& ProfileName)
 	std::basic_string<char> NewProfile = R"({
 )";
 
-	if (!GamesList.empty())
+	if (!CurrentProfileGames.empty())
 	{
 		NewProfile += R"(	"GamesList":  [)";
 
@@ -305,6 +305,21 @@ void GLRManager::SetProfileGames(const std::vector<Game>& GameList)
 		{
 			//The game was not already in the list
 			CurrentProfileGames.push_back(Game);
+		}
+	}
+
+	SaveProfile(CurrentProfileName);
+}
+
+void GLRManager::RemoveProfileGames(const std::vector<Game>& GameList)
+{
+	for (const auto& Game : GameList)
+	{
+		auto iter = std::find(CurrentProfileGames.begin(), CurrentProfileGames.end(), Game);
+		if (iter != CurrentProfileGames.end())
+		{
+			//The game was not already in the list
+			CurrentProfileGames.erase(iter);
 		}
 	}
 

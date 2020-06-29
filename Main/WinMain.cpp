@@ -114,7 +114,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         SetupDockspace();
 
         //Show Demo Window
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
 
         // render your GUI
     	if (ImGui::Begin("Profiles"))
@@ -259,7 +259,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			                {
 		                		//Selecting
 								selectedProfile[i] = i;
-		                		SelectedGames.push_back(GLRManager.ProfileGetGameOfIndex(i));
+		                		SelectedProfileGames.push_back(GLRManager.ProfileGetGameOfIndex(i));
 			                }
 
                         	//If we are trying to multi select, keep track of what we are tryiug to select
@@ -268,8 +268,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                         }
 		    		}
     			}
-
-    			
     			ImGui::EndTable();
             }
     		ImGui::End();
@@ -330,7 +328,14 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	{
     		if (ImGui::Button("Remove Games"))
     		{
+    			if (GLRManager.GetProfileGameListSize() != 0)
+    			{
+    				GLRManager.RemoveProfileGames(SelectedProfileGames);
+    				SelectedProfileGames.clear();
+    				selectedProfile.clear();
+    			}
     		}
+    		
 			ImGui::End();
     	}
     	
