@@ -54,13 +54,13 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
-    io.Fonts->AddFontFromFileTTF("Tools/Fonts/Roboto-Medium.ttf",16.0f);
-	io.Fonts->AddFontFromFileTTF("Tools/Fonts/Cousine-Regular.ttf", 15.0f);
-	io.Fonts->AddFontFromFileTTF("Tools/Fonts/DroidSans.ttf", 16.0f);
-	io.Fonts->AddFontFromFileTTF("Tools/Fonts/ProggyTiny.ttf", 10.0f);
+    io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto-Medium.ttf",16.0f);
+	io.Fonts->AddFontFromFileTTF("Resources/Fonts/Cousine-Regular.ttf", 15.0f);
+	io.Fonts->AddFontFromFileTTF("Resources/Fonts/DroidSans.ttf", 16.0f);
+	io.Fonts->AddFontFromFileTTF("Resources/Fonts/ProggyTiny.ttf", 10.0f);
 	io.Fonts->AddFontDefault();
 
-	io.IniFilename = "DockConfig";
+	io.IniFilename = "Resources/DockConfig.ini";
 }
 
 void ImguiOpenGL::SetupImGuiFrame()

@@ -23,7 +23,5 @@ public:
 	std::string GetStringFromJSString(JSStringRef str);
 	
 	void OnFinishLoading(ultralight::View* caller) override;
-	
-	void OnUpdateHistory(ultralight::View* caller) override;
 	void OnDOMReady(ultralight::View* caller) override;
 };

@@ -4,7 +4,6 @@
 #include <thread>
 #include <chrono>
 
-const char* htmlString();
 
 using namespace ultralight;
 HeadlessBrowserManager::HeadlessBrowserManager()
@@ -13,7 +12,7 @@ HeadlessBrowserManager::HeadlessBrowserManager()
     config.device_scale = 1.0;
     config.font_family_standard = "Arial";
 	config.use_gpu_renderer = false;
-	config.resource_path = "./resources/"; // Required to make SSL Requests
+	config.resource_path = "./Resources/"; // Required to make SSL Requests
 	Platform::instance().set_config(config);
 	Platform::instance().set_font_loader(GetPlatformFontLoader());
 	
@@ -129,16 +128,10 @@ std::vector<Game> HeadlessBrowserManager::GetList()
 
 void HeadlessBrowserManager::OnFinishLoading(View* caller)
 {
-	//Force the page to load all elements up to 1000
-	//GLRBrowserView->EvaluateScript("$('select[name=table-sortable_length]').val('1000').change()");
-
 	//Tell our loop we are done
 	IsDone = true;
 }
 
-void HeadlessBrowserManager::OnUpdateHistory(ultralight::View* caller)
-{
-}
 
 void HeadlessBrowserManager::OnDOMReady(ultralight::View* caller)
 {

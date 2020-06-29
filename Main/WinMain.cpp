@@ -156,7 +156,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		
 			ImGui::End();
     	}
-    	
+
+    	//Profile Functions
     	bool ShiftKeyDownProfile = false;
     	if (ImGui::Begin("ProfilesTable"))
     	{
@@ -273,6 +274,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		ImGui::End();
 		}
 
+    	//Started a new Profile Table
     	if (BeginNewProfile)
     	{
     		if (!ImGui::IsPopupOpen("NewProfile"))
@@ -324,6 +326,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             }
     	}
 
+    	//Button functions for Profile
     	if (ImGui::Begin("ProfileTableButtons"))
     	{
     		if (ImGui::Button("Remove Games"))
@@ -338,7 +341,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		
 			ImGui::End();
     	}
-    	
+
+    	//Game Search Area
         if (ImGui::Begin("Game Search"))
         {
         	ImGui::Spacing();
@@ -380,6 +384,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		}
     	}
 
+    	//Generate the Table
     	bool ShiftKeyDown = false;
     	if (ImGui::Begin("GamesTable"))
     	{
@@ -506,6 +511,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		ImGui::End();
 		}
 
+    	//Button Functions for the table
         if (ImGui::Begin("TableButtons"))
     	{
     		if (ImGui::Button("Add Games"))
