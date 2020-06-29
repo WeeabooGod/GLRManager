@@ -1,11 +1,12 @@
 # Weeb's Greenluma Reborn Manager
 A C++ variant of the Greenluma Reborn Manager. Uses Imgui for Gui with OpenGL. Integrated with Ultralight, a Chromium based Headless browser for use of scraping Steam.DB.
-Inspired off of ImaniiTy's variant of the manager, I find I avoid a lot more traps and pitfalls that it falls into, making it easier and more reliable to use.
+
+Inspired off of **ImaniiTy's** variant of the manager, I find I avoid a lot more traps and pitfalls that it falls into, making it easier and more reliable to use.
 
 
 (VCRUNTIME140_1.dll missing)
-Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019 is required to run this program. You can download the redistrubutable here:
-https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019 is required to run this program. 
+You can download the redistrubutable here: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
 
 x64 seems to be what is required.
 
