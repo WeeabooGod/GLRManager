@@ -12,6 +12,19 @@
 #include <thread>
 #include <vector>
 
+static void HelpMarker(const char* desc)
+{
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	//This will be our browser for use of webscraping
@@ -41,6 +54,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	static bool StartedSearch = false;
 	static bool BeginSearch = false;
     static bool BeginNewProfile = false;
+
+	static bool BeginWarn = false;
 	
 	//Global Search word, so we can start the search from elsewhere
 	std::string SearchWords;
@@ -97,7 +112,17 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 if (ImGui::Button("Done"))
                 {
                 	//Set the path we have happened to get. If there wasn't any to begin with then no worries.
-                    GLRManager.SetGreenlumaPath(pathInput);
+					std::string GLRPath = pathInput;
+                	GLRPath += "/DLLInjector.exe";
+                	
+                    if (DoesFileExist(GLRPath))
+                    {
+	                    GLRManager.SetGreenlumaPath(pathInput);
+                    }
+                    else
+                    {
+	                    ImGui::Text("There does not seem to be a DLLInjector.exe in this path.");
+                    }
                 	
                 	//Only end if there is even a "valid" (not nessesarily correct) path
                 	if (!GLRManager.GetGreenlumaPath().empty())
@@ -137,9 +162,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		{
     			for (int i = 0; i < GLRManager.GetNumberOfProfiles(); i++)
     			{
+    				//Item is selected
     				const bool isSelected = (currentProfileIndex == i);
     				if (ImGui::Selectable(GLRManager.GetProfileNameOfIndex(i).c_str(), isSelected))
-                        currentProfileIndex = i;
+    				{
+    					currentProfileIndex = i;
+    					GLRManager.LoadProfile(GLRManager.GetProfileNameOfIndex(i));
+    				}
 
     				//Set the initial focus when opening the combo
     				if (isSelected)
@@ -153,7 +182,19 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             {
                 BeginNewProfile = true;
             }
+    		int size = GLRManager.GetProfileGameListSize();
+    		std::string ProfileSizeText = std::to_string(size);
     		
+    		ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("xxxx").x + ImGui::CalcTextSize(std::to_string(GLRManager.GetProfileGameListSize()).c_str()).x));
+    		if (size <= 171)
+    		{
+    			ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.8f, 1), ProfileSizeText.c_str());
+    		}
+            else if (size > 171)
+            {
+	            ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1), ProfileSizeText.c_str());
+            }
+    		ImGui::SameLine(); HelpMarker("Size of Profile List. Red means its over limit.");
 			ImGui::End();
     	}
 
@@ -338,8 +379,40 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     				selectedProfile.clear();
     			}
     		}
+    		ImGui::SameLine();
+    		if (ImGui::Button("Generate AppID List"))
+    		{
+    			if (GLRManager.GetProfileGameListSize() != 0 && GLRManager.GetProfileGameListSize() <= 171)
+    			{
+    				GLRManager.GenerateAppIDList();
+    			}
+                else if (GLRManager.GetProfileGameListSize() >= 171)
+                {
+                    BeginWarn = true;
+                }
+    		}
     		
 			ImGui::End();
+    	}
+
+    	if (BeginWarn)
+    	{
+    		//Warn the user of over limit
+	        if (!ImGui::IsPopupOpen("ToManyGamesWarning"))
+    			ImGui::OpenPopup("ToManyGamesWarning");
+	        if (ImGui::BeginPopupModal("ToManyGamesWarning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+			{
+	            std::string WarningText = "There is " + std::to_string(GLRManager.GetProfileGameListSize()) + " games in the list. Greenluma 2020 only supports 171.";
+	            ImGui::Text(WarningText.c_str());
+	            
+	            if (ImGui::Button("Confirm"))
+	            {
+	                ImGui::CloseCurrentPopup();
+	            	BeginWarn = false;
+	            }
+	            
+	            ImGui::EndPopup();
+	        }
     	}
 
     	//Game Search Area

@@ -75,4 +75,6 @@ public:
 	
 	void AppendGameList(std::vector<Game> GeneratedList);
 
+	void GenerateAppIDList();
+
 };

@@ -398,3 +398,21 @@ void GLRManager::AppendGameList(std::vector<Game> GeneratedList)
 	//Copy our GameList with our Generated List
 	GamesList = std::move(GeneratedList);
 }
+
+void GLRManager::GenerateAppIDList()
+{
+	//Remove any and all existing files that are within the directory
+	for (const auto & entry : std::filesystem::directory_iterator(GreenlumaPath + "/AppList/"))
+	{
+		std::remove(entry.path().generic_string().c_str());
+	}
+
+	//Generate all AppList Files
+	for (int i = 0; i < CurrentProfileGames.size(); i++)
+	{
+		//Save what ever we have made modifications to into our json
+		std::ofstream ProfileFile(GreenlumaPath + "/AppList/" + std::to_string(i) + ".txt");
+		ProfileFile << CurrentProfileGames[i].AppID;
+		ProfileFile.close();
+	}
+}
