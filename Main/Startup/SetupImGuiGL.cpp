@@ -20,7 +20,7 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
     // Create window with graphics context
-    window = glfwCreateWindow(1280, 720, programName.c_str(), nullptr, nullptr);
+    window = glfwCreateWindow(1480, 720, programName.c_str(), nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 

@@ -60,11 +60,11 @@ void HeadlessBrowserManager::Run()
 		GLRBrowserRenderer->Render();
 	}
 
-	//Generate bitmap for testing purposes
-	BitmapSurface* bitmap_surface = (BitmapSurface*)GLRBrowserView->surface();
-	RefPtr<Bitmap> bitmap = bitmap_surface->bitmap();
-	bitmap->SwapRedBlueChannels();
-	bitmap->WritePNG("result.png");
+	////Generate bitmap for testing purposes
+	//BitmapSurface* bitmap_surface = (BitmapSurface*)GLRBrowserView->surface();
+	//RefPtr<Bitmap> bitmap = bitmap_surface->bitmap();
+	//bitmap->SwapRedBlueChannels();
+	//bitmap->WritePNG("result.png");
 }
 
 std::string HeadlessBrowserManager::GetStringFromJSString(JSStringRef str)

@@ -32,9 +32,6 @@ class GLRManager
 	//Profiles list
 	std::vector<std::string> ProfileNamesList;
 
-	//Log text list
-	std::vector<std::string>LogText;
-
 public:
 	GLRManager();
 	
@@ -45,21 +42,34 @@ public:
 	std::string GetProgramName();
 	std::string GetGreenlumaPath();
 	void SetGreenlumaPath(std::string Path);
-	const std::vector<std::string> GetLogText();
 
 	int GetGameListSize();
+	int GetProfileGameListSize();
+	
 	std::string GetGameNameOfIndex(int index);
 	std::string GetGameAppIDDOfIndex(int index);
 	std::string GetGameTypeOfIndex(int index);
+	std::string ProfileGetGameNameOfIndex(int index);
+	std::string ProfileGetGameAppIDDOfIndex(int index);
+	std::string ProfileGetGameTypeOfIndex(int index);
 	void FilterGames(bool WGames, bool WApplications, bool WMedia, bool WOther);
 	
 	Game GetGameOfIndex(int index);
+	Game ProfileGetGameOfIndex(int index);
 
 	//Profile Member Functions
 	void LoadProfile(const std::string& ProfileName);
 	void SaveProfile(const std::string& ProfileName);
 	void SetProfileGames(const std::vector<Game>& GameList);
-
+	void ClearProfileGames();
+	std::vector<Game> GetProfileGames();
+	
+	std::string GetProfileNameOfIndex(int index);
+	int GetProfileIndexOfNamed(std::string name);
+	std::string GetCurrentProfileName();
+	
+	int GetNumberOfProfiles();
+	
 	void GetProfilesInDirectory();
 	
 	void AppendGameList(std::vector<Game> GeneratedList);

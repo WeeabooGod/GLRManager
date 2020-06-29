@@ -28,12 +28,20 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     static std::vector<int> selected;     //A IMGUI Selected List to highlight stuff in Column
 	static int lastSelected = -1;          //Used mostly to allow for shift select
 
-	//Checkbox for filtering.
+	//Vairables used within the loops (For Profile)
+    std::vector<Game> SelectedProfileGames; 	  //A list of GameAPPID we would have selected
+    static std::vector<int> selectedProfile;     //A IMGUI Selected List to highlight stuff in Column
+	static int lastSelectedProfile = -1;          //Used mostly to allow for shift select
 
+	//Profile Games we have added. If we don't have a profile set to begin with this will just return an empty list anyways;
+	std::vector<Game> AddedProfileGames = GLRManager.GetProfileGames();
+	static int currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
+	
 	//Bools that force a popup window to come up during search and list as they take the longest
 	static bool StartedSearch = false;
 	static bool BeginSearch = false;
-
+    static bool BeginNewProfile = false;
+	
 	//Global Search word, so we can start the search from elsewhere
 	std::string SearchWords;
 	
@@ -112,41 +120,218 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	if (ImGui::Begin("Profiles"))
     	{
     		ImGui::Text("Profiles");
-    		ImGui::Button("Hello!");
-			ImGui::End();
-    	}
 
-    	if (ImGui::Begin("Logs"))
-    	{
-    		ImGui::Text("Logs");
+    		//Index and Lable, if index is -1 we have "none" selected, which also means the number of profiles we have is 0 anyways
+    		std::string ComboLable;
 
-            ImGui::PushID("##Logs");
-    		ImGui::BeginGroup();
+            if (currentProfileIndex != -1)
+            {
+                ComboLable = GLRManager.GetProfileNameOfIndex(currentProfileIndex);
+            }
+            else
+            {
+	            ComboLable = "None";
+            }
     		
-    		const ImGuiWindowFlags child_flags = 0;
-            const ImGuiID child_id = ImGui::GetID(static_cast<void*>(nullptr));
-            ImGui::BeginChild(child_id, ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y), true, child_flags);
-
-    		//Here is where we can display logs
-    		for (int i = 0; i < GLRManager.GetLogText().size(); i++)
+    		if (ImGui::BeginCombo("", ComboLable.c_str(), ImGuiComboFlags_None))
     		{
-    			if (i == GLRManager.GetLogText().size() - 1)
+    			for (int i = 0; i < GLRManager.GetNumberOfProfiles(); i++)
     			{
-    				//Normal White Color
-    				ImGui::Text(GLRManager.GetLogText()[i].c_str());
+    				const bool isSelected = (currentProfileIndex == i);
+    				if (ImGui::Selectable(GLRManager.GetProfileNameOfIndex(i).c_str(), isSelected))
+                        currentProfileIndex = i;
+
+    				//Set the initial focus when opening the combo
+    				if (isSelected)
+                        ImGui::SetItemDefaultFocus();
     			}
-                else
-                {
-                	//Render at half color
-	                ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,1), GLRManager.GetLogText()[i].c_str());
-                }
-    			ImGui::SetScrollHere(1.0f);
+    			
+    			ImGui::EndCombo();
     		}
     		
-    		ImGui::EndChild();
-    		ImGui::EndGroup();
-    		ImGui::PopID();
+            if (ImGui::Button("New Profile"))
+            {
+                BeginNewProfile = true;
+            }
+    		
+			ImGui::End();
+    	}
+    	
+    	bool ShiftKeyDownProfile = false;
+    	if (ImGui::Begin("ProfilesTable"))
+    	{
+    		//If Key is Selected
+    		if (ImGui::GetIO().KeyShift)
+    		{
+    			ShiftKeyDownProfile = true;
+    		}
+            else
+            {
+	            lastSelectedProfile = -1;
+            }
+
+    		static ImGuiTableFlags flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
+    		if (ImGui::BeginTable("##table2", 1, flags))
+			{
+    			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetWindowWidth() - ImGui::GetFontSize() * 7);
+
+				ImGui::TableAutoHeaders();
+    			
+    			//Data Within Table
+    			if (selectedProfile.empty() && !GLRManager.GetProfileGames().empty())
+    			{
+    				for (int i = 0; i <  GLRManager.GetProfileGames().size(); i++)
+		    		{
+		    			selectedProfile.push_back(-1);
+		    		}
+    			}
+    			
+    			for (int i = 0; i < GLRManager.GetProfileGameListSize(); i++)
+    			{
+    				ImGui::TableNextRow(ImGuiTableRowFlags_None, ImGui::GetFontSize() * 1.5f);
+    				ImGui::TableSetColumnIndex(0);
+		    		if (ImGui::Selectable(GLRManager.ProfileGetGameNameOfIndex(i).c_str(), selectedProfile[i] == i, ImGuiSelectableFlags_SpanAllColumns))
+		    		{
+		    			ImGui::Spacing();
+		    			if (ShiftKeyDownProfile && lastSelectedProfile != -1)
+		    			{
+		    				int count = 0;
+		    				if (lastSelectedProfile > i)
+		    				{
+		    					count = lastSelectedProfile - i;
+		    					for (int j = 0; j < count; j++)
+		    					{
+		    						if (selectedProfile[i + j] == i + j)
+		    						{
+		    							//Deselecting
+		    							selectedProfile[i + j] = -1;
+		    							auto iter = std::find(SelectedProfileGames.begin(), SelectedProfileGames.end(), GLRManager.ProfileGetGameOfIndex(i + j));
+		    							if (iter != SelectedProfileGames.end())
+		    							{
+		    								SelectedProfileGames.erase(iter);
+		    							}
+		    						}
+					                else
+					                {
+		                				//Selecting
+										selectedProfile[i + j] = i + j;
+		                				SelectedProfileGames.push_back(GLRManager.ProfileGetGameOfIndex(i + j));
+					                }
+		    					}
+		    				}
+                            else
+                            {
+	                            count = i - lastSelectedProfile;
+		    					for (int j = 0; j < count; j++)
+		    					{
+		    						if (selectedProfile[i - j] == i - j)
+		    						{
+		    							//Deselecting
+		    							selectedProfile[i - j] = -1;
+		    							auto iter = std::find(SelectedProfileGames.begin(), SelectedProfileGames.end(), GLRManager.ProfileGetGameOfIndex(i - j));
+		    							if (iter != SelectedProfileGames.end())
+		    							{
+		    								SelectedProfileGames.erase(iter);
+		    							}
+		    						}
+					                else
+					                {
+		                				//Selecting
+										selectedProfile[i - j] = i - j;
+		                				SelectedProfileGames.push_back(GLRManager.ProfileGetGameOfIndex(i - j));
+					                }
+		    					}
+                            }
+		    			}
+                        else
+                        {
+	                        if (selectedProfile[i] == i)
+		    				{
+		    					//Deselecting
+		    					selectedProfile[i] = -1;
+		    					auto iter = std::find(SelectedProfileGames.begin(), SelectedProfileGames.end(), GLRManager.ProfileGetGameOfIndex(i));
+		    					if (iter != SelectedProfileGames.end())
+		    					{
+		    						SelectedProfileGames.erase(iter);
+		    					}
+		    				}
+			                else
+			                {
+		                		//Selecting
+								selectedProfile[i] = i;
+		                		SelectedGames.push_back(GLRManager.ProfileGetGameOfIndex(i));
+			                }
+
+                        	//If we are trying to multi select, keep track of what we are tryiug to select
+                        	if (ShiftKeyDownProfile)
+								lastSelectedProfile = i;
+                        }
+		    		}
+    			}
+
+    			
+    			ImGui::EndTable();
+            }
     		ImGui::End();
+		}
+
+    	if (BeginNewProfile)
+    	{
+    		if (!ImGui::IsPopupOpen("NewProfile"))
+    			ImGui::OpenPopup("NewProfile");
+            if (ImGui::BeginPopupModal("NewProfile", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Spacing();
+            	
+                static char pathInput[1024];
+            	
+                ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3.0f);
+                ImGui::InputTextWithHint("", "Profile Name", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None); 
+	            ImGui::Spacing();
+            	if (ImGui::Button("Confirm"))
+            	{
+            		std::string text = pathInput;
+
+            		//Only Confirm if we have input
+            		if (!text.empty())
+            		{
+            			//Close Current Popup
+            			ImGui::CloseCurrentPopup();
+
+            			//Clear existing list, save new list which auto reloads, along with saving the current selection to our Config
+            			GLRManager.ClearProfileGames();
+            			GLRManager.SaveProfile(text);
+            			GLRManager.GetProfilesInDirectory();
+            			GLRManager.WriteToConfig();
+
+            			currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
+
+            			//Clear the Selection and Profile Games
+            			SelectedProfileGames.clear();
+						selectedProfile.clear();
+            			
+            			BeginNewProfile = false;
+            		}
+            	}
+            	ImGui::SameLine(((ImGui::GetIO().DisplaySize.x / 3.0f) - ImGui::CalcTextSize("Cancel").x * 1.05f));
+            	//We are done
+                if (ImGui::Button("Cancel"))
+                {
+					ImGui::CloseCurrentPopup();
+                	BeginNewProfile = false;
+                }
+
+            	
+                ImGui::EndPopup();
+            }
+    	}
+
+    	if (ImGui::Begin("ProfileTableButtons"))
+    	{
+    		if (ImGui::Button("Remove Games"))
+    		{
+    		}
+			ImGui::End();
     	}
     	
         if (ImGui::Begin("Game Search"))
@@ -173,6 +358,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			ImGui::End();   
         }
 
+    	//PopUp Part of the Search
     	if (StartedSearch == true)
     	{
     		if (!ImGui::IsPopupOpen("Searching"))
