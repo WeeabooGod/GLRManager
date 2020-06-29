@@ -222,7 +222,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     			//Data Within Table
     			if (selectedProfile.empty() && !GLRManager.GetProfileGames().empty())
     			{
-    				for (int i = 0; i <  GLRManager.GetProfileGames().size(); i++)
+    				for (int i = 0; i <  GLRManager.GetProfileGameListSize(); i++)
 		    		{
 		    			selectedProfile.push_back(-1);
 		    		}
@@ -403,8 +403,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        if (ImGui::BeginPopupModal("ToManyGamesWarning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
 			{
 	            std::string WarningText = "There is " + std::to_string(GLRManager.GetProfileGameListSize()) + " games in the list. Greenluma 2020 only supports 171.";
-	            ImGui::Text(WarningText.c_str());
-	            
+	            ImGui::Text(WarningText.c_str()); ImGui::SameLine(); HelpMarker("Concider trimming the list down.");
+                ImGui::Spacing();
+	        	ImGui::NewLine(); ImGui::SameLine(ImGui::GetWindowWidth() / 2 - ((ImGui::CalcTextSize("Confirm")).x / 2));
+	        	
 	            if (ImGui::Button("Confirm"))
 	            {
 	                ImGui::CloseCurrentPopup();
@@ -592,6 +594,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     			GLRManager.SetProfileGames(SelectedGames);
     			SelectedGames.clear();
     			selected.clear();
+    			SelectedProfileGames.clear();
+    			selectedProfile.clear();
     		}
 			ImGui::End();
     	}

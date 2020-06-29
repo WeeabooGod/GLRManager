@@ -1,7 +1,6 @@
 #pragma once
 #include <Ultralight/Ultralight.h>
 #include <AppCore/AppCore.h>
-#include <JavaScriptCore/JavaScript.h>
 
 #include "../Tools/DataType/GameStruc.h"
 #include <string>
