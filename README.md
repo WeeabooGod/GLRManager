@@ -1,5 +1,7 @@
 # Weeb's Greenluma Reborn Manager
-A C++ variant of the Greenluma Reborn Manager. Uses Imgui for Gui with OpenGL. Integrated with Ultralight, a Chromium based Headless browser for use of scraping Steam.DB.
+A C++ variant of the Greenluma Reborn Manager. Uses Imgui for Gui with OpenGL. Integrated with Ultralight, a Chromium based Headless browser for use of scraping Steam.DB. 
+
+Currently cannot interact with the DLLInjector.exe so creating a shortcut to the DLLInjector would great.
 
 Inspired off of **ImaniiTy's** variant of the manager, I find I avoid a lot more traps and pitfalls that it falls into, making it easier and more reliable to use.
 

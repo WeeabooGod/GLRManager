@@ -9,6 +9,7 @@
 #include "Tools/CHBrowserManager.h"
 
 //Final smaller stuff required as well
+#include <shellapi.h>
 #include <thread>
 #include <vector>
 
@@ -29,7 +30,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 {
 	//This will be our browser for use of webscraping
 	HeadlessBrowserManager GLRBrowser;
-	
+
 	//Create the 
 	GLRManager GLRManager;
 
@@ -379,8 +380,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     				selectedProfile.clear();
     			}
     		}
-    		ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Generate AppID List").x * 1.15f);
-
+            ImGui::SameLine(ImGui::GetWindowWidth() / 3);
     		ImGui::PushID(1);
     		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
     		if (ImGui::Button("Generate AppID List"))
@@ -396,6 +396,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		}
     		ImGui::PopStyleColor(1);
     		ImGui::PopID();
+            ImGui::SameLine();
+    		
 			ImGui::End();
     	}
 
