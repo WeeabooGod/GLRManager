@@ -22,6 +22,8 @@ class GLRManager
 	std::string GreenlumaPath = "";
 	std::string LastProfileName = "";
 
+	int AppListLimit = 137;
+
 	//Lists of Games on Search
 	std::vector<Game> GamesList;
 
@@ -76,5 +78,7 @@ public:
 	void AppendGameList(std::vector<Game> GeneratedList);
 
 	void GenerateAppIDList();
+
+	int GetAppListLimit() { return AppListLimit; };
 
 };
