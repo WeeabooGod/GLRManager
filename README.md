@@ -5,10 +5,11 @@ Inspired off of **ImaniiTy's** variant of the manager, I find I avoid a lot more
 
 
 (VCRUNTIME140_1.dll missing)
-Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019 is required to run this program. 
-You can download the redistrubutable here: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019 is required to run this program. You can download the redistrubutable here: 
 
-x64 seems to be what is required.
+https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+
+x64 seems to be what is required based on testing.
 
 # How to use
 
