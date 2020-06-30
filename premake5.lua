@@ -39,7 +39,8 @@ project "GLRManager"
 		"Main/Tools/**",
 		"Main/Resources/**",
     }
-
+	
+	
 	filter "configurations:Debug"
 		ignoredefaultlibraries { "MSVCRT", "LIBCMTD" }
         defines         { "_DEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS",}

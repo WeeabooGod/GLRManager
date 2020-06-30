@@ -1,4 +1,8 @@
 #include "SetupImGuiGL.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "../IMGui/stb_image.h"
+
 #include "../IMGui/imgui_freetype.h"
 
 static void glfw_error_callback(int error, const char* description)
@@ -61,6 +65,13 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
 	io.Fonts->AddFontDefault();
 
 	io.IniFilename = "Resources/DockConfig.ini";
+
+	//Icon for program
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("Resources/Icon.png", &images[0].width, &images[0].height, 0, 4); //rgba channels
+	glfwSetWindowIcon(window, 1, images);
+	stbi_image_free(images[0].pixels);
+
 }
 
 void ImguiOpenGL::SetupImGuiFrame()
