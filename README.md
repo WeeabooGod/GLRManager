@@ -18,6 +18,11 @@ Simply search for your Game or DLC within the search bar on the left side. After
 
 On the right is the profile manager. Create profiles and add games to the list. There will be a number to indicate if you go over 171, as well as a warning if you try to generate with more than 171 games.
 
+# How to build
+
+I use premake5 to generate visual studio files. You should be able to just run the GenerateBuildFiles.bat and create a build folder for your version of visual studio.
+
+
 
 
 There will be bugs that I havn't found. Please just let me know!
