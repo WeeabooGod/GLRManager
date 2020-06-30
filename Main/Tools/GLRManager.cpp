@@ -295,7 +295,30 @@ void GLRManager::SaveProfile(const std::string& ProfileName)
 
 	//Reload the Profile
 	LoadProfile(ProfileName);
-}			
+}
+
+void GLRManager::DeleteProfile(const std::string& ProfileName)
+{
+	//Get all the available profiles that exist and is there
+	for (const auto & entry : std::filesystem::directory_iterator(UserProfilePath))
+	{
+		if (entry.path().filename().extension().generic_string() == ".json")
+		{
+			//get string then remove the extention
+			std::string FileName = entry.path().filename().generic_string();
+			FileName = FileName.substr(0, FileName.size() - 5);
+
+			if (FileName == ProfileName)
+			{
+				std::remove(entry.path().generic_string().c_str());
+
+				CurrentProfileName = "";
+				LastProfileName = "";
+				return;
+			}
+		}
+	}
+}
 
 void GLRManager::SetProfileGames(const std::vector<Game>& GameList)
 {

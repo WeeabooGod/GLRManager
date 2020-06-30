@@ -68,7 +68,7 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
 
 	//Icon for program
 	GLFWimage images[1];
-	images[0].pixels = stbi_load("Resources/Icon.png", &images[0].width, &images[0].height, 0, 4); //rgba channels
+	images[0].pixels = stbi_load("Resources/Images/Icon.png", &images[0].width, &images[0].height, nullptr, 4); //rgba channels
 	glfwSetWindowIcon(window, 1, images);
 	stbi_image_free(images[0].pixels);
 
@@ -126,7 +126,7 @@ void ImguiOpenGL::FreetypeInit()
 	//Freetype init
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->TexGlyphPadding = 1;
-	unsigned int  FontsFlags = 0;
+	unsigned int FontsFlags;
 	
 	FontsFlags = ImGuiFreeType::ForceAutoHint;
 	//FontsFlags |= ImGuiFreeType::Bold;

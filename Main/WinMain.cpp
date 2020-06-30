@@ -10,9 +10,7 @@
 
 //Final smaller stuff required as well
 #include <shellapi.h>
-#include <thread>
 #include <vector>
-#include <chrono>
 
 static void HelpMarker(const char* desc)
 {
@@ -25,6 +23,20 @@ static void HelpMarker(const char* desc)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+}
+
+static void AddGamesToList(GLRManager& GLRManager, std::vector<Game>& SelectedGames, std::vector<int>& selected, std::vector<Game>& SelectedProfileGames, std::vector<int>& selectedProfile)
+{
+    GLRManager.SetProfileGames(SelectedGames);
+    SelectedGames.clear();
+    selected.clear();
+    SelectedProfileGames.clear();
+    selectedProfile.clear();
+}
+
+static void LaunchGreenLuma(const std::string& Path, const std::string& Directory)
+{
+	ShellExecute(nullptr, "open", Path.c_str(), nullptr, Directory.c_str(), 0);	
 }
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -56,6 +68,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	static bool StartedSearch = false;
 	static bool BeginSearch = false;
     static bool BeginNewProfile = false;
+	static bool AlsoAddGames = false;
 	static bool BeginWarn = false;
 	static bool BeginSettings = false;
 	static bool BeginRunGL = false;
@@ -125,7 +138,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         //Show Demo Window
         //ImGui::ShowDemoWindow();
 
-        // render your GUI
+        //render your GUI
+
+    	//Profile Tabs
     	if (ImGui::Begin("Profiles"))
     	{
     		ImGui::Text("Profiles");
@@ -161,15 +176,38 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     			
     			ImGui::EndCombo();
     		}
+    		ImGui::Spacing();
     		
             if (ImGui::Button("New Profile"))
             {
                 BeginNewProfile = true;
             }
+    		ImGui::SameLine(); ImGui::Spacing(); ImGui::SameLine();
+    		ImGui::SameLine();
+    		
+    		ImGui::PushID(1);
+    		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+    		if (ImGui::Button("Delete Profile"))
+    		{
+    			//Delete Profile
+    			GLRManager.DeleteProfile(GLRManager.GetProfileNameOfIndex(currentProfileIndex));
+
+    			//Clear ProfileGames and Selections
+                GLRManager.ClearProfileGames();
+    			SelectedProfileGames.clear();
+    			selectedProfile.clear();
+
+    			//Set Profile index to none as well as the combo lable
+    			currentProfileIndex = -1;
+    			ComboLable = "None";
+    		}
+            ImGui::PopStyleColor(1);
+    		ImGui::PopID();
+
+    		//Warning number lable, go above, become red
     		int size = GLRManager.GetProfileGameListSize();
     		std::string ProfileSizeText = std::to_string(size);
-    		
-    		ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("xxxx").x + ImGui::CalcTextSize(std::to_string(GLRManager.GetProfileGameListSize()).c_str()).x));
+    		ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("xxxxxxx").x + ImGui::CalcTextSize(std::to_string(GLRManager.GetProfileGameListSize()).c_str()).x));
     		if (size <= GLRManager.GetAppListLimit())
     		{
     			ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.8f, 1), ProfileSizeText.c_str());
@@ -200,7 +238,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		if (ImGui::BeginTable("##table2", 1, flags))
 			{
     			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, ImGui::GetWindowWidth() - ImGui::GetFontSize() * 7);
-
 				ImGui::TableAutoHeaders();
     			
     			//Data Within Table
@@ -227,10 +264,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		    					count = lastSelectedProfile - i;
 		    					for (int j = 0; j < count; j++)
 		    					{
-		    						if (selectedProfile[i + j] == i + j)
+		    						if (selectedProfile[(i + j)] == i + j)
 		    						{
 		    							//Deselecting
-		    							selectedProfile[i + j] = -1;
+		    							selectedProfile[(i + j)] = -1;
 		    							auto iter = std::find(SelectedProfileGames.begin(), SelectedProfileGames.end(), GLRManager.ProfileGetGameOfIndex(i + j));
 		    							if (iter != SelectedProfileGames.end())
 		    							{
@@ -240,7 +277,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					                else
 					                {
 		                				//Selecting
-										selectedProfile[i + j] = i + j;
+										selectedProfile[(i + j)] = i + j;
 		                				SelectedProfileGames.push_back(GLRManager.ProfileGetGameOfIndex(i + j));
 					                }
 		    					}
@@ -250,10 +287,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	                            count = i - lastSelectedProfile;
 		    					for (int j = 0; j < count; j++)
 		    					{
-		    						if (selectedProfile[i - j] == i - j)
+		    						if (selectedProfile[(i - j)] == i - j)
 		    						{
 		    							//Deselecting
-		    							selectedProfile[i - j] = -1;
+		    							selectedProfile[(i - j)] = -1;
 		    							auto iter = std::find(SelectedProfileGames.begin(), SelectedProfileGames.end(), GLRManager.ProfileGetGameOfIndex(i - j));
 		    							if (iter != SelectedProfileGames.end())
 		    							{
@@ -263,7 +300,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					                else
 					                {
 		                				//Selecting
-										selectedProfile[i - j] = i - j;
+										selectedProfile[(i - j)] = i - j;
 		                				SelectedProfileGames.push_back(GLRManager.ProfileGetGameOfIndex(i - j));
 					                }
 		    					}
@@ -335,8 +372,15 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             			//Clear the Selection and Profile Games
             			SelectedProfileGames.clear();
 						selectedProfile.clear();
+
+            			//If the user presssed Add Games to an empty Profile, we need to add those games now for convience sake.
+            			if (AlsoAddGames == true)
+            			{
+            				AddGamesToList(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile);
+            			}
             			
             			BeginNewProfile = false;
+            			AlsoAddGames = false;
             		}
             	}
             	ImGui::SameLine(((ImGui::GetIO().DisplaySize.x / 3.0f) - ImGui::CalcTextSize("Cancel").x * 1.05f));
@@ -346,7 +390,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					ImGui::CloseCurrentPopup();
                 	BeginNewProfile = false;
                 }
-
             	
                 ImGui::EndPopup();
             }
@@ -371,14 +414,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             	if (!BeginRunGL)
             	{
 					//First close steam
-            		DWORD steam = FindProcessId("steam.exe");
-            		DWORD injhe = FindProcessId("dllinjector.exe");
+            		DWORD steam = FindProcessId(_strdup("steam.exe"));
 
+            		//Check if steam is running if not, run program, if it is, open up a PopUp to confirm closing steam
             		if (steam == 0)
             		{
-            		    std::string GLRPath = (GLRManager.GetGreenlumaPath() + "/DLLInjector.exe");
-            			ShellExecute(nullptr, "open", GLRPath.c_str(), nullptr, GLRManager.GetGreenlumaPath().c_str(), 0);	
-            		}
+            		   LaunchGreenLuma((GLRManager.GetGreenlumaPath() + "/DLLInjector.exe"), GLRManager.GetGreenlumaPath());
+                    }
                     else
                     {
 	                    BeginRunGL = true;
@@ -411,7 +453,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
     	if (BeginRunGL)
     	{
-    		// We got into this list because steam was already running
+    		// We got into this popup because steam was already running
 	        if (!ImGui::IsPopupOpen("SteamAlreadyRunning"))
     			ImGui::OpenPopup("SteamAlreadyRunning");
 	        if (ImGui::BeginPopupModal("SteamAlreadyRunning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
@@ -423,7 +465,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                     ImGui::Spacing();
 	        		if (ImGui::Button("Confirm"))
 	        		{
-	        			DWORD steam = FindProcessId("steam.exe");
+	        			DWORD steam = FindProcessId(_strdup("steam.exe"));
 	        			TerminateProcess(steam, 1);
 
 	        			if (steam == 0)
@@ -439,8 +481,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        			BeginRunGL = false;
 	        		}
 
-					//Is steam still open at this point?
-					DWORD steam = FindProcessId("steam.exe");
+					//Ensure no steam process is running
+					DWORD steam = FindProcessId(_strdup("steam.exe"));
 	        		if (steam == 0)
 	        		{
 	        			IsSteamClosed = true;
@@ -448,9 +490,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 				}
                 else
                 {
-	                std::string GLRPath = (GLRManager.GetGreenlumaPath() + "/DLLInjector.exe");
-            		ShellExecute(nullptr, "open", GLRPath.c_str(), nullptr, GLRManager.GetGreenlumaPath().c_str(), 0);
+                	//No Steam process was found running, launch green luma
+                	LaunchGreenLuma((GLRManager.GetGreenlumaPath() + "/DLLInjector.exe"), GLRManager.GetGreenlumaPath());
 
+                	//Reset Bools and close current popup
                 	IsSteamClosed = false;
                 	BeginRunGL = false;
                 	ImGui::CloseCurrentPopup();
@@ -486,14 +529,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	//Game Search Area
         if (ImGui::Begin("Game Search"))
         {
-        	ImGui::Spacing();
         	static char pathInput[1024];
         	ImGui::SameLine((ImGui::GetWindowWidth() / 2) - (ImGui::CalcTextSize("GreenLuma Reborn Manager").x / 2));
         	ImGui::Text("GreenLuma Reborn Manager");
-        	ImGui::Spacing();
         	
-        	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 1.2f - ImGui::CalcTextSize("Search").x*1.7f);
-        	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None); ImGui::SameLine();
+        	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.983f);
+        	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
+        	ImGui::Spacing();
         	
 	        if (ImGui::Button("Search"))
 	        {
@@ -572,10 +614,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		    					count = lastSelected - i;
 		    					for (int j = 0; j < count; j++)
 		    					{
-		    						if (selected[i + j] == i + j)
+		    						if (selected[(i + j)] == i + j)
 		    						{
 		    							//Deselecting
-		    							selected[i + j] = -1;
+		    							selected[(i + j)] = -1;
 		    							auto iter = std::find(SelectedGames.begin(), SelectedGames.end(), GLRManager.GetGameOfIndex(i + j));
 		    							if (iter != SelectedGames.end())
 		    							{
@@ -585,7 +627,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					                else
 					                {
 		                				//Selecting
-										selected[i + j] = i + j;
+										selected[(i + j)] = i + j;
 		                				SelectedGames.push_back(GLRManager.GetGameOfIndex(i + j));
 					                }
 		    					}
@@ -595,10 +637,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	                            count = i - lastSelected;
 		    					for (int j = 0; j < count; j++)
 		    					{
-		    						if (selected[i - j] == i - j)
+		    						if (selected[(i - j)] == i - j)
 		    						{
 		    							//Deselecting
-		    							selected[i - j] = -1;
+		    							selected[(i - j)] = -1;
 		    							auto iter = std::find(SelectedGames.begin(), SelectedGames.end(), GLRManager.GetGameOfIndex(i - j));
 		    							if (iter != SelectedGames.end())
 		    							{
@@ -608,7 +650,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 					                else
 					                {
 		                				//Selecting
-										selected[i - j] = i - j;
+										selected[(i - j)] = i - j;
 		                				SelectedGames.push_back(GLRManager.GetGameOfIndex(i - j));
 					                }
 		    					}
@@ -657,11 +699,16 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	{
     		if (ImGui::Button("Add Games"))
     		{
-    			GLRManager.SetProfileGames(SelectedGames);
-    			SelectedGames.clear();
-    			selected.clear();
-    			SelectedProfileGames.clear();
-    			selectedProfile.clear();
+    			if (currentProfileIndex != -1)
+    			{
+					AddGamesToList(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile);
+    			}
+                else
+                {
+	                //Make a new profile
+                	BeginNewProfile = true;
+                	AlsoAddGames = true;
+                }
     		}
         	ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize("Settings").x * 1.3f));
         	if (ImGui::Button("Settings"))

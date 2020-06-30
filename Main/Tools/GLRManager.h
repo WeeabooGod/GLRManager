@@ -62,6 +62,8 @@ public:
 	//Profile Member Functions
 	void LoadProfile(const std::string& ProfileName);
 	void SaveProfile(const std::string& ProfileName);
+	void DeleteProfile(const std::string& ProfileName);
+	
 	void SetProfileGames(const std::vector<Game>& GameList);
 	void RemoveProfileGames(const std::vector<Game>& GameList);
 	void ClearProfileGames();
