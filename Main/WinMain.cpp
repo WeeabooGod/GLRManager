@@ -54,8 +54,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	static bool StartedSearch = false;
 	static bool BeginSearch = false;
     static bool BeginNewProfile = false;
-
 	static bool BeginWarn = false;
+	static bool BeginSettings = false;
 	
 	//Global Search word, so we can start the search from elsewhere
 	std::string SearchWords;
@@ -379,7 +379,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     				selectedProfile.clear();
     			}
     		}
-    		ImGui::SameLine();
+    		ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Generate AppID List").x * 1.15f);
+
+    		ImGui::PushID(1);
+    		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
     		if (ImGui::Button("Generate AppID List"))
     		{
     			if (GLRManager.GetProfileGameListSize() != 0 && GLRManager.GetProfileGameListSize() <= 171)
@@ -391,7 +394,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                     BeginWarn = true;
                 }
     		}
-    		
+    		ImGui::PopStyleColor(1);
+    		ImGui::PopID();
 			ImGui::End();
     	}
 
@@ -597,7 +601,47 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     			SelectedProfileGames.clear();
     			selectedProfile.clear();
     		}
+        	ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize("Settings").x * 1.3f));
+        	if (ImGui::Button("Settings"))
+        	{
+        		BeginSettings = true;
+        	}
 			ImGui::End();
+    	}
+
+    	//Popup for settings
+    	if (BeginSettings)
+    	{
+    		if (!ImGui::IsPopupOpen("ChangeSettings"))
+    			ImGui::OpenPopup("ChangeSettings");
+
+    		
+            if (ImGui::BeginPopupModal("ChangeSettings", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Current Greenluma Directory");
+            	static char newdirectory[1024];
+            	ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3);
+            	ImGui::InputTextWithHint("", GLRManager.GetGreenlumaPath().c_str(), newdirectory, IM_ARRAYSIZE(newdirectory), ImGuiInputTextFlags_None);
+                ImGui::Spacing();
+            	if(ImGui::Button("Change"))
+    			{
+                    std::string GLRPath = newdirectory;
+                	GLRPath += "/DLLInjector.exe";
+                	
+                    if (DoesFileExist(GLRPath))
+                    {
+	                    GLRManager.SetGreenlumaPath(newdirectory);
+                    }
+    			}
+            	ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Close").x * 1.5f);
+            	if(ImGui::Button("Close"))
+    			{
+    				ImGui::CloseCurrentPopup();
+    				BeginSettings = false;
+    			}
+
+            	ImGui::EndPopup();
+            }
     	}
     	
         //End Dock-space
