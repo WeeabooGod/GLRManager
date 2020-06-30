@@ -80,6 +80,26 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     // Main loop
     while (!glfwWindowShouldClose(ImguiManager.GetWindow()))
     {
+    	//Did we officially open the pop up and begin search? If so, fucking do it then
+    	if (BeginSearch == true && StartedSearch == false)
+    	{
+    		    //Initiate a browser search based on our search keys.
+		        GLRBrowser.SearchSteamDB(SearchWords);
+	            
+		        //Give our list to our GLRManager
+		        GLRManager.AppendGameList(GLRBrowser.GetList());
+		        
+		        //Clear any previous selections
+		        SelectedGames.clear();
+		        selected.clear();
+
+    			StartedSearch = false;
+    			BeginSearch = false;
+
+    			//Close PopUp
+    			ImGui::CloseCurrentPopup();
+    	}
+    	
         // Start the Dear ImGui frame
         ImguiManager.SetupImGuiFrame();
     	
@@ -207,7 +227,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		//Warning number lable, go above, become red
     		int size = GLRManager.GetProfileGameListSize();
     		std::string ProfileSizeText = std::to_string(size);
-    		ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("xxxxxxx").x + ImGui::CalcTextSize(std::to_string(GLRManager.GetProfileGameListSize()).c_str()).x));
+    		ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("xxxxxx").x + ImGui::CalcTextSize(std::to_string(GLRManager.GetProfileGameListSize()).c_str()).x));
     		if (size <= GLRManager.GetAppListLimit())
     		{
     			ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.8f, 1), ProfileSizeText.c_str());
@@ -752,26 +772,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
             	ImGui::EndPopup();
             }
-    	}
-
-    	//Did we officially open the pop up and begin search? If so, fucking do it then
-    	if (BeginSearch == true && StartedSearch == false)
-    	{
-    		    //Initiate a browser search based on our search keys.
-		        GLRBrowser.SearchSteamDB(SearchWords);
-	            
-		        //Give our list to our GLRManager
-		        GLRManager.AppendGameList(GLRBrowser.GetList());
-		        
-		        //Clear any previous selections
-		        SelectedGames.clear();
-		        selected.clear();
-
-    			StartedSearch = false;
-    			BeginSearch = false;
-
-    			//Close PopUp
-    			ImGui::CloseCurrentPopup();
     	}
     	
         //End Dock-space
