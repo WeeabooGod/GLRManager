@@ -1,12 +1,12 @@
 #pragma once
 #include <Ultralight/Ultralight.h>
-#include <AppCore/AppCore.h>
+#include <AppCore/Platform.h>
 
 #include "../Tools/DataType/GameStruc.h"
 #include <string>
 #include <vector>
 
-class HeadlessBrowserManager final : public ultralight::LoadListener
+class HeadlessBrowserManager : public ultralight::LoadListener
 {
 	ultralight::RefPtr<ultralight::Renderer> GLRBrowserRenderer;
 	ultralight::RefPtr<ultralight::View> GLRBrowserView;
