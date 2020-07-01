@@ -5,7 +5,8 @@
 #include <iomanip>
 #include <sstream>
 #include <sys/stat.h>
-#include <shlobj.h>
+#include <ShlObj.h>
+#include <tlhelp32.h>
 
 #include "../../Libraries/IMGui/imgui.h"
 
