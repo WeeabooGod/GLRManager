@@ -2,7 +2,7 @@
 #include <Ultralight/Ultralight.h>
 #include <AppCore/Platform.h>
 
-#include "../Tools/DataType/GameStruc.h"
+#include "../DataType/GameStruc.h"
 #include <string>
 #include <vector>
 

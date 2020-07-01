@@ -5,8 +5,8 @@
 
 //Other important stuff we need
 #include "Tools/Helpers.h"
-#include "Tools/GLRManager.h"
-#include "Tools/CHBrowserManager.h"
+#include "Tools/Managers/GLRManager.h"
+#include "Tools/Managers/CHBrowserManager.h"
 
 //Final smaller stuff required as well
 #include <shellapi.h>
@@ -14,19 +14,6 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
-
-static void HelpMarker(const char* desc)
-{
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc);
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
 
 static void AddGamesToList(GLRManager& GLRManager, std::vector<Game>& SelectedGames, std::vector<int>& selected, std::vector<Game>& SelectedProfileGames, std::vector<int>& selectedProfile)
 {

@@ -2,7 +2,7 @@
 #include <string>
 #include <chrono>
 #include <windows.h>
-#include <tlhelp32.h>
+
 
 std::string BrowseForFolder();
 
@@ -16,3 +16,6 @@ std::string serializeTimePoint( const std::chrono::system_clock::time_point& tim
 DWORD FindProcessId(char* processName);
 
 BOOL TerminateProcess(DWORD dwProcessId, UINT uExitCode);
+
+
+void HelpMarker(const char* desc);

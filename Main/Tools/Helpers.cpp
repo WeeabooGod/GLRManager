@@ -5,7 +5,22 @@
 #include <iomanip>
 #include <sstream>
 #include <sys/stat.h>
-#include "shlobj.h"
+#include <shlobj.h>
+
+#include "../../Libraries/IMGui/imgui.h"
+
+void HelpMarker(const char* desc)
+{
+	ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
 
 bool DoesPathExist(const std::string& dirPath)
 {

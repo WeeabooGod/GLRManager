@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "cJSON.h"
-#include "../Tools/DataType/GameStruc.h"
+#include "../DataType/GameStruc.h"
 
 //Manages the user's config and profiles
 class GLRManager
