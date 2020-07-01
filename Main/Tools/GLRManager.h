@@ -1,8 +1,8 @@
 #pragma once
-#include "../Tools/DataType/GameStruc.h"
-#include "cJSON.h"
 #include <string>
 #include <vector>
+#include "cJSON.h"
+#include "../Tools/DataType/GameStruc.h"
 
 //Manages the user's config and profiles
 class GLRManager

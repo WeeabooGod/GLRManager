@@ -221,22 +221,22 @@ Game GLRManager::ProfileGetGameOfIndex(int index)
 	return CurrentProfileGames[index];
 }
 
-
 void GLRManager::LoadProfile(const std::string& ProfileName)
 {
 	CurrentProfileGames.clear();
-	
+
 	if (!ProfileName.empty())
 	{
 		cJSON *GamesList = GetJSONFile(UserProfilePath + ProfileName + ".json");
 
 		if (GamesList != nullptr)
 		{
-			const auto jGamesList = cJSON_GetObjectItem(GamesList, "GamesList");
-			const cJSON* jGame = nullptr;
+			auto* const jGamesList = cJSON_GetObjectItem(GamesList, "GamesList");
 			
-			cJSON_ArrayForEach(jGame, jGamesList)
+			for (int i = 0; i < cJSON_GetArraySize(jGamesList); i++)
 			{
+				const cJSON* jGame = cJSON_GetArrayItem(jGamesList, i);
+				
 				Game Game;
 				Game.AppID = (cJSON_GetObjectItem(jGame, "AppID"))->valueint;
 				Game.Name = (cJSON_GetObjectItem(jGame, "Name"))->valuestring;
