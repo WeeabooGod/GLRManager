@@ -11,6 +11,7 @@ class HeadlessBrowserManager : public ultralight::LoadListener
 	ultralight::RefPtr<ultralight::Renderer> GLRBrowserRenderer;
 	ultralight::RefPtr<ultralight::View> GLRBrowserView;
 	bool IsDone = false;
+
 public:
 	HeadlessBrowserManager();
 	virtual ~HeadlessBrowserManager();

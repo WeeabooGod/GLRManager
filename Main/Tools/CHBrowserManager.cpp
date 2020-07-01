@@ -1,7 +1,7 @@
 #include "CHBrowserManager.h"
 
-#include <sstream>
 #include <thread>
+#include <sstream>
 #include <chrono>
 
 

@@ -153,8 +153,11 @@ void ImguiOpenGL::UpdateFontAtlasThread(std::atomic_bool& done)
 	}
 	ImGuiFreeType::BuildFontAtlas(NewFonts, FontsFlags);
 
-	if (io.Fonts)
+	//This is so that if we close prematurely we can use the bool to not try to access the data
+	if (done == false)
+	{
 		io.Fonts = NewFonts;
+	}
 
 	done = true;
 	FlushOldAtlas = true;

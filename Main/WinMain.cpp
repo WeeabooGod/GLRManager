@@ -37,9 +37,10 @@ static void AddGamesToList(GLRManager& GLRManager, std::vector<Game>& SelectedGa
     selectedProfile.clear();
 }
 
-static void LaunchGreenLuma(const std::string& Path, const std::string& Directory)
+static void LaunchGreenLuma(GLRManager& GLRManager)
 {
-	ShellExecute(nullptr, "open", Path.c_str(), nullptr, Directory.c_str(), 0);	
+	GLRManager.GenerateAppIDList();
+	ShellExecute(nullptr, "open", (GLRManager.GetGreenlumaPath() + "/DLLInjector.exe").c_str(), nullptr, GLRManager.GetGreenlumaPath().c_str(), 0);
 }
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -47,7 +48,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	//This will be our browser for use of webscraping
 	HeadlessBrowserManager GLRBrowser;
 
-	//Create the 
+	//Create the GLRManager that handles all the main functions
 	GLRManager GLRManager;
 
     //Setup the GL
@@ -68,14 +69,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	static int currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
 	
 	//Bools for PopUp choices
-	static bool StartedSearch = false;
-	static bool BeginSearch = false;
-    static bool BeginNewProfile = false;
 	static bool AlsoAddGames = false;
-	static bool BeginWarn = false;
-	static bool BeginSettings = false;
-	static bool BeginRunGL = false;
-	static bool IsSteamClosed = false;
+	static bool BeginSearch = true;
+	int SearchWaitLoops = 0;
 	
 	//Search words for use in Steam.DB Searching
 	std::string SearchWords;
@@ -87,33 +83,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     // Main loop
     while (!glfwWindowShouldClose(ImguiManager.GetWindow()))
     {
-    	//UTF8 fonts for other stuff like chinese and japanese characters
-    	if (FontRebuildDone)
-    	{
-    		BuildFont.join();
-    		FontRebuildDone = false;
-    	}
-	
-    	//Did we officially open the pop up and begin search? If so, fucking do it then
-    	if (BeginSearch == true && StartedSearch == false)
-    	{
-    		    //Initiate a browser search based on our search keys. So far Ultralight cannot be threaded
-		        GLRBrowser.SearchSteamDB(SearchWords);
-	            
-		        //Give our list to our GLRManager
-		        GLRManager.AppendGameList(GLRBrowser.GetList());
-		        
-		        //Clear any previous selections
-		        SelectedGames.clear();
-		        selected.clear();
-
-    			StartedSearch = false;
-    			BeginSearch = false;
-
-    			//Close PopUp
-    			ImGui::CloseCurrentPopup();
-    	}
-    	
         // Start the Dear ImGui frame
         ImguiManager.SetupImGuiFrame();
     	
@@ -170,10 +139,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         }
 
         //Show Demo Window
-        ImGui::ShowDemoWindow();
-
-        //render your GUI
-
+        //ImGui::ShowDemoWindow();
+        
     	//Profile Tabs
     	if (ImGui::Begin("Profiles"))
     	{
@@ -216,8 +183,61 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		
             if (ImGui::Button("New Profile"))
             {
-                BeginNewProfile = true;
+                if (!ImGui::IsPopupOpen("NewProfile"))
+    				ImGui::OpenPopup("NewProfile");
             }
+    		
+    		if (ImGui::BeginPopupModal("NewProfile", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Spacing();
+            	
+                static char pathInput[1024];
+            	
+                ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3.0f);
+                ImGui::InputTextWithHint("", "Profile Name", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
+            	ImGui::Separator();
+	            ImGui::Spacing();
+            	if (ImGui::Button("Confirm"))
+            	{
+            		std::string text = pathInput;
+
+            		//Only Confirm if we have input
+            		if (!text.empty())
+            		{
+            			//Close Current Popup
+            			ImGui::CloseCurrentPopup();
+
+            			//Clear existing list, save new list which auto reloads, along with saving the current selection to our Config
+            			GLRManager.ClearProfileGames();
+            			GLRManager.SaveProfile(text);
+            			GLRManager.GetProfilesInDirectory();
+            			GLRManager.WriteToConfig();
+
+            			currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
+
+            			//Clear the Selection and Profile Games
+            			SelectedProfileGames.clear();
+						selectedProfile.clear();
+
+            			//If the user presssed Add Games to an empty Profile, we need to add those games now for convience sake.
+            			if (AlsoAddGames == true)
+            			{
+            				AddGamesToList(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile);
+            			}
+            			
+            			AlsoAddGames = false;
+            		}
+            	}
+            	ImGui::SameLine(((ImGui::GetIO().DisplaySize.x / 3.0f) - ImGui::CalcTextSize("Cancel").x * 1.05f));
+            	//We are done
+                if (ImGui::Button("Cancel"))
+                {
+					ImGui::CloseCurrentPopup();
+                }
+            	
+                ImGui::EndPopup();
+            }
+    		
     		ImGui::SameLine(); ImGui::Spacing(); ImGui::SameLine();
     		ImGui::SameLine();
     		
@@ -373,65 +393,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     		ImGui::End();
 		}
 
-    	//Started a new Profile Table
-    	if (BeginNewProfile)
-    	{
-    		if (!ImGui::IsPopupOpen("NewProfile"))
-    			ImGui::OpenPopup("NewProfile");
-            if (ImGui::BeginPopupModal("NewProfile", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Spacing();
-            	
-                static char pathInput[1024];
-            	
-                ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3.0f);
-                ImGui::InputTextWithHint("", "Profile Name", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
-            	ImGui::Separator();
-	            ImGui::Spacing();
-            	if (ImGui::Button("Confirm"))
-            	{
-            		std::string text = pathInput;
-
-            		//Only Confirm if we have input
-            		if (!text.empty())
-            		{
-            			//Close Current Popup
-            			ImGui::CloseCurrentPopup();
-
-            			//Clear existing list, save new list which auto reloads, along with saving the current selection to our Config
-            			GLRManager.ClearProfileGames();
-            			GLRManager.SaveProfile(text);
-            			GLRManager.GetProfilesInDirectory();
-            			GLRManager.WriteToConfig();
-
-            			currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
-
-            			//Clear the Selection and Profile Games
-            			SelectedProfileGames.clear();
-						selectedProfile.clear();
-
-            			//If the user presssed Add Games to an empty Profile, we need to add those games now for convience sake.
-            			if (AlsoAddGames == true)
-            			{
-            				AddGamesToList(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile);
-            			}
-            			
-            			BeginNewProfile = false;
-            			AlsoAddGames = false;
-            		}
-            	}
-            	ImGui::SameLine(((ImGui::GetIO().DisplaySize.x / 3.0f) - ImGui::CalcTextSize("Cancel").x * 1.05f));
-            	//We are done
-                if (ImGui::Button("Cancel"))
-                {
-					ImGui::CloseCurrentPopup();
-                	BeginNewProfile = false;
-                }
-            	
-                ImGui::EndPopup();
-            }
-    	}
-
     	//Button functions for Profile
     	if (ImGui::Begin("ProfileTableButtons"))
     	{
@@ -448,119 +409,89 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
             if (ImGui::Button("Run Greenluma"))
             {
-            	if (!BeginRunGL)
-            	{
-					//First close steam
-            		DWORD steam = FindProcessId(_strdup("steam.exe"));
+				//First close steam
+            	DWORD steam = FindProcessId(_strdup("steam.exe"));
 
-            		//Check if steam is running if not, run program, if it is, open up a PopUp to confirm closing steam
-            		if (steam == 0)
-            		{
-            		   LaunchGreenLuma((GLRManager.GetGreenlumaPath() + "/DLLInjector.exe"), GLRManager.GetGreenlumaPath());
-                    }
-                    else
-                    {
-	                    BeginRunGL = true;
-                    }
-            	}
+            	//Check if steam is running if not, run program, if it is, open up a PopUp to confirm closing steam
+            	if (steam == 0)
+            	{
+            	    LaunchGreenLuma(GLRManager);
+                }
+                else
+                {
+	                if (!ImGui::IsPopupOpen("SteamAlreadyRunning"))
+    					ImGui::OpenPopup("SteamAlreadyRunning");
+                }
             }
+    		
+    		if (ImGui::BeginPopupModal("SteamAlreadyRunning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ImGui::Text("Steam is already running. Should we close it?");
+				ImGui::Separator();
+                ImGui::Spacing();
+	        	if (ImGui::Button("Confirm"))
+	        	{
+	        		DWORD steam = FindProcessId(_strdup("steam.exe"));
+	        		TerminateProcess(steam, 1);
+	        	}
+                ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("Cancel").x * 1.4f));
+	        	if (ImGui::Button("Cancel"))
+	        	{
+	        		ImGui::CloseCurrentPopup();
+	        	}
+
+				//Ensure no steam process is running and then launch greenluma
+				DWORD steam = FindProcessId(_strdup("steam.exe"));
+	        	if (steam == 0)
+	        	{
+	        		
+	        		LaunchGreenLuma(GLRManager);
+	        		ImGui::CloseCurrentPopup();
+				}
+
+	        	ImGui::EndPopup();
+            }
+    		
     		ImGui::SameLine();
     		ImGui::PushID(1);
     		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
     		if (ImGui::Button("Generate AppID List"))
     		{
-    			if (!BeginRunGL)
+    		    if (GLRManager.GetProfileGameListSize() != 0 && GLRManager.GetProfileGameListSize() <= GLRManager.GetAppListLimit())
     			{
-    			    if (GLRManager.GetProfileGameListSize() != 0 && GLRManager.GetProfileGameListSize() <= GLRManager.GetAppListLimit())
-    				{
-    					GLRManager.GenerateAppIDList();
-    				}
-	                else if (GLRManager.GetProfileGameListSize() >= GLRManager.GetAppListLimit())
-	                {
-	                    BeginWarn = true;
-	                }	
+    				GLRManager.GenerateAppIDList();
     			}
-
-    		}
-    		ImGui::PopStyleColor(1);
-    		ImGui::PopID();
-    		
-			ImGui::End();
-    	}
-
-    	if (BeginRunGL)
-    	{
-    		// We got into this popup because steam was already running
-	        if (!ImGui::IsPopupOpen("SteamAlreadyRunning"))
-    			ImGui::OpenPopup("SteamAlreadyRunning");
-	        if (ImGui::BeginPopupModal("SteamAlreadyRunning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
-			{
-				if (!IsSteamClosed)
-				{
-					ImGui::Text("Steam is already running. Should we close it?");
-					ImGui::Separator();
-                    ImGui::Spacing();
-	        		if (ImGui::Button("Confirm"))
-	        		{
-	        			DWORD steam = FindProcessId(_strdup("steam.exe"));
-	        			TerminateProcess(steam, 1);
-
-	        			if (steam == 0)
-	        			{
-	        				IsSteamClosed = true;
-	        			}
-	        		}
-	                ImGui::SameLine(ImGui::GetWindowWidth() - (ImGui::CalcTextSize("Cancel").x * 1.4f));
-	        		if (ImGui::Button("Cancel"))
-	        		{
-	        			ImGui::CloseCurrentPopup();
-	        			IsSteamClosed = false;
-	        			BeginRunGL = false;
-	        		}
-
-					//Ensure no steam process is running
-					DWORD steam = FindProcessId(_strdup("steam.exe"));
-	        		if (steam == 0)
-	        		{
-	        			IsSteamClosed = true;
-	        		}
-				}
-                else
+                else if (GLRManager.GetProfileGameListSize() >= GLRManager.GetAppListLimit())
                 {
-                	//No Steam process was found running, launch green luma
-                	LaunchGreenLuma((GLRManager.GetGreenlumaPath() + "/DLLInjector.exe"), GLRManager.GetGreenlumaPath());
-
-                	//Reset Bools and close current popup
-                	IsSteamClosed = false;
-                	BeginRunGL = false;
-                	ImGui::CloseCurrentPopup();
-                }
-
-	        	ImGui::EndPopup();
-            }
-    		
-    	}
-    	
-    	if (BeginWarn)
-    	{
+                    //Warn the user of over limit
+			        if (!ImGui::IsPopupOpen("ToManyGamesWarning"))
+			        {
+				        ImGui::OpenPopup("ToManyGamesWarning");
+			        }
+                }	
+    		}
     		//Warn the user of over limit
-	        if (!ImGui::IsPopupOpen("ToManyGamesWarning"))
-    			ImGui::OpenPopup("ToManyGamesWarning");
 	        if (ImGui::BeginPopupModal("ToManyGamesWarning", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
 			{
                 std::string WarningText = "There is " + std::to_string(GLRManager.GetProfileGameListSize()) + " games in the list. Greenluma 2020 1.1.1 only supports " + std::to_string(GLRManager.GetAppListLimit()) + ".";
 	            ImGui::Text(WarningText.c_str()); ImGui::SameLine(); HelpMarker("Concider trimming the list down.");
                 ImGui::Spacing();
 	        	ImGui::NewLine(); ImGui::SameLine(ImGui::GetWindowWidth() / 2 - ((ImGui::CalcTextSize("Confirm")).x / 2));
-	        	
+                ImGui::Separator();
+				ImGui::PushID(2);
+	        	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.3f, 0.5f, 1.0f});
 	            if (ImGui::Button("Confirm"))
 	            {
 	                ImGui::CloseCurrentPopup();
-	            	BeginWarn = false;
 	            }
-	            
+	        	ImGui::PopStyleColor(1);
+    			ImGui::PopID();
 	            ImGui::EndPopup();
 	        }
+    		ImGui::PopStyleColor(1);
+    		ImGui::PopID();
+    		
+			ImGui::End();
     	}
 
     	//Game Search Area
@@ -573,7 +504,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.983f);
         	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
         	ImGui::Spacing();
-        	
 	        if (ImGui::Button("Search"))
 	        {
 		        std::string input = pathInput;
@@ -581,28 +511,52 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        	if (!input.empty())
 	        	{
 	        		SearchWords = input;
-	        		StartedSearch = true;
+
+	        		//Open Search Modal, start the loop wait 
+					if (!ImGui::IsPopupOpen("Searching"))
+					{
+						ImGui::OpenPopup("Searching");
+						SearchWaitLoops = 0;
+						BeginSearch = true;
+					}
 	        	}
 	        }
+
+        	if (BeginSearch)
+        	{
+        		if (ImGui::BeginPopupModal("Searching", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+    			{
+    				ImGui::Text("Getting games list...");
+
+        			//Loop it because Modals take a few loops before its fully rendered. I want the search to be obvious that its happening
+        			SearchWaitLoops++;
+
+        			//The search function must be done like this or the pop-up wont render, this ensures the pop up renders before we actually go do the thing
+    				if (SearchWaitLoops > 8)
+    				{
+    				    //Initiate a browser search based on our search keys. So far Ultralight cannot be threaded
+				        GLRBrowser.SearchSteamDB(SearchWords);
+    				
+				        //Give our list to our GLRManager
+				        GLRManager.AppendGameList(GLRBrowser.GetList());
+				        
+				        //Clear any previous selections
+				        SelectedGames.clear();
+				        selected.clear();
+
+    					SearchWaitLoops = 0;
+    					BeginSearch = false;
+    				
+    					//Close PopUp
+    					ImGui::CloseCurrentPopup();
+    				}
+        			
+    				ImGui::EndPopup();
+    			}
+        	}
+        	
 			ImGui::End();   
         }
-
-    	//PopUp Part of the Search
-    	if (StartedSearch == true)
-    	{
-    		if (!ImGui::IsPopupOpen("Searching"))
-    			ImGui::OpenPopup("Searching");
-            if (ImGui::BeginPopupModal("Searching", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
-    		{
-    			ImGui::Text("Getting games list...");
-            	
-            	if (BeginSearch == true)
-                    StartedSearch = false;
-            	BeginSearch = true;
-            	
-    			ImGui::EndPopup();
-    		}
-    	}
 
     	//Generate the Table
     	bool ShiftKeyDown = false;
@@ -741,26 +695,20 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     			}
                 else
                 {
+	                if (!ImGui::IsPopupOpen("NewProfile"))
+    					ImGui::OpenPopup("NewProfile");
+                	
 	                //Make a new profile
-                	BeginNewProfile = true;
                 	AlsoAddGames = true;
                 }
     		}
         	ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize("Settings").x * 1.3f));
         	if (ImGui::Button("Settings"))
         	{
-        		BeginSettings = true;
+        		if (!ImGui::IsPopupOpen("ChangeSettings"))
+    				ImGui::OpenPopup("ChangeSettings");
         	}
-			ImGui::End();
-    	}
 
-    	//Popup for settings
-    	if (BeginSettings)
-    	{
-    		if (!ImGui::IsPopupOpen("ChangeSettings"))
-    			ImGui::OpenPopup("ChangeSettings");
-
-    		
             if (ImGui::BeginPopupModal("ChangeSettings", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
             {
                 ImGui::Text("Current Greenluma Directory");
@@ -783,11 +731,12 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             	if(ImGui::Button("Close"))
     			{
     				ImGui::CloseCurrentPopup();
-    				BeginSettings = false;
     			}
 
             	ImGui::EndPopup();
             }
+        	
+			ImGui::End();
     	}
     	
         //End Dock-space
@@ -796,14 +745,20 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         //Finish Doing things and render to Screen
         ImguiManager.RenderImGui();
     }
-
+	
     // Cleanup
     ImguiManager.CleanupImGuiGL();
 
 	//Make sure we properly write all of our vairables back into our config.
     GLRManager.WriteToConfig();
 
+
 	//Make sure its done before we close
+	while (!FontRebuildDone)
+	{
+		FontRebuildDone = true;
+	}
+
 	if (BuildFont.joinable())
 		BuildFont.join();
 	
