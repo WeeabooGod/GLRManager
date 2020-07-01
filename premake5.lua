@@ -18,11 +18,11 @@ project "GLRManager"
 	debugdir	"Main"
 
     includedirs {
+		"Libraries/cJSON",
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
 		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
-		"Libraries/simdjson",
 		"Libraries/UltralightHeadless/include",
     }
 	
@@ -88,10 +88,10 @@ project "Libraries"
 	language    "C++"
 	
     includedirs {
+		"Libraries/cJSON",
 		"Libraries/OpenGL/GLFW/include",
 		"Libraries/OpenGL/GL/include",
 		"Libraries/Freetype/include",
-		"Libraries/simdjson",
 		"Libraries/UltralightHeadless/include",
     }
 	
@@ -102,10 +102,10 @@ project "Libraries"
 	}
 
     files {
+		"Libraries/cJSON/**",
         "Libraries/OpenGL/**",
         "Libraries/IMGui/**",
 		"Libraries/Freetype/**",
-		"Libraries/simdjson/**",
 		"Libraries/UltralightHeadless/**",
     }
 	

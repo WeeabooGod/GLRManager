@@ -187,6 +187,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     				{
     					currentProfileIndex = i;
     					GLRManager.LoadProfile(GLRManager.GetProfileNameOfIndex(i));
+    					SelectedProfileGames.clear();
+    					selectedProfile.clear();
     				}
 
     				//Set the initial focus when opening the combo
@@ -216,7 +218,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 GLRManager.ClearProfileGames();
     			SelectedProfileGames.clear();
     			selectedProfile.clear();
-
+                GLRManager.GetProfilesInDirectory();
+    			
     			//Set Profile index to none as well as the combo lable
     			currentProfileIndex = -1;
     			ComboLable = "None";

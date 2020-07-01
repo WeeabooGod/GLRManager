@@ -1,16 +1,12 @@
 #pragma once
 #include "../Tools/DataType/GameStruc.h"
-#include "simdjson.h"
+#include "cJSON.h"
 #include <string>
 #include <vector>
 
 //Manages the user's config and profiles
 class GLRManager
 {
-	//simdjson stuff
-	simdjson::dom::parser GLRParser;
-	simdjson::dom::element jUserConfig;
-
 	//User Paths and Files
 	std::string UserAppLocalPath = "";
 	std::string UserConfigPath = "";
@@ -37,7 +33,7 @@ class GLRManager
 public:
 	GLRManager();
 	
-	std::string GetJSONFile(const std::string& Path);
+	cJSON* GetJSONFile(const std::string& Path);
 	void WriteToConfig();
 
 	//Get Setters for MainProgam
@@ -58,8 +54,7 @@ public:
 	
 	Game GetGameOfIndex(int index);
 	Game ProfileGetGameOfIndex(int index);
-
-	//Profile Member Functions
+	
 	void LoadProfile(const std::string& ProfileName);
 	void SaveProfile(const std::string& ProfileName);
 	void DeleteProfile(const std::string& ProfileName);

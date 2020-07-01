@@ -50,11 +50,11 @@ GLRManager::GLRManager()
     }
 
 	//Load our Config
-	jUserConfig = GLRParser.load(UserConfigPath);
+	cJSON *jConfig = GetJSONFile(UserConfigPath);
 		
 	//We need to get the nessesary information from the Config.
-	GreenlumaPath = std::string_view(jUserConfig["GreenlumaPath"]);
-	LastProfileName = std::string_view(jUserConfig["LastProfileName"]);
+	GreenlumaPath = cJSON_GetObjectItem(jConfig, "GreenlumaPath")->valuestring;
+	LastProfileName = cJSON_GetObjectItem(jConfig, "LastProfileName")->valuestring;
 
 	
 	//Load the Profiles
@@ -62,7 +62,7 @@ GLRManager::GLRManager()
 	LoadProfile(LastProfileName);	// Load the last profile, defaults to "default" if there was none
 }
 
-std::string GLRManager::GetJSONFile(const std::string& Path)
+cJSON* GLRManager::GetJSONFile(const std::string& Path)
 {
 	//Load File and Parse
     std::ifstream file(Path);
@@ -71,22 +71,23 @@ std::string GLRManager::GetJSONFile(const std::string& Path)
     file.close();
     
     //Return a raw data
-	return FileContents;
+	return cJSON_Parse(FileContents.c_str());
 }
 
 void GLRManager::WriteToConfig()
 {
-	//Put all the current vairables into our main buffer, just in case
-	auto NewConfig = R"({
-	"ProgramName":  ")" + ProgramName + R"(",
-	"Version":  ")" + ProgramVersion + R"(",
-	"GreenlumaPath":    ")" + GreenlumaPath + R"(",
-	"LastProfileName":   ")" + LastProfileName + R"("
-})";
+    //Json Object, our "File" so to speak
+    cJSON* jConfig = cJSON_CreateObject();
+
+    //Add Variables to Config
+    cJSON_AddItemToObject(jConfig, "ProgramName", cJSON_CreateString(ProgramName.c_str()));
+    cJSON_AddItemToObject(jConfig, "Version", cJSON_CreateString(ProgramVersion.c_str()));
+    cJSON_AddItemToObject(jConfig, "GreenlumaPath", cJSON_CreateString(GreenlumaPath.c_str()));
+    cJSON_AddItemToObject(jConfig, "LastProfileName", cJSON_CreateString(LastProfileName.c_str()));
 	
 	//Save what ever we have made modifications to into our json
 	std::ofstream ConfigFile(UserConfigPath);
-	ConfigFile << NewConfig;
+	ConfigFile << cJSON_Print(jConfig);
 	ConfigFile.close();
 }
 
@@ -220,29 +221,30 @@ Game GLRManager::ProfileGetGameOfIndex(int index)
 	return CurrentProfileGames[index];
 }
 
+
 void GLRManager::LoadProfile(const std::string& ProfileName)
 {
 	CurrentProfileGames.clear();
-
+	
 	if (!ProfileName.empty())
 	{
-		simdjson::dom::element jTempProfile;
-		simdjson::error_code error;
-		GLRParser.load(UserProfilePath + ProfileName + ".json").tie(jTempProfile, error);
+		cJSON *GamesList = GetJSONFile(UserProfilePath + ProfileName + ".json");
 
-		if (!error)
+		if (GamesList != nullptr)
 		{
-			//Go through the entire 90000+ json app list. Thankfully simdjson is REALLY fast so this takes naught but a second
-			for (simdjson::dom::element element : jTempProfile["GamesList"])
-			{
-			    Game temp;
-			    temp.AppID = static_cast<int>(element["AppID"].get<double>());
-			    temp.Name = std::string_view(element["name"]);
-				temp.Type = std::string_view(element["type"]);
-				
-				CurrentProfileGames.push_back(temp);
-			}
+			const auto jGamesList = cJSON_GetObjectItem(GamesList, "GamesList");
+			const cJSON* jGame = nullptr;
 			
+			cJSON_ArrayForEach(jGame, jGamesList)
+			{
+				Game Game;
+				Game.AppID = (cJSON_GetObjectItem(jGame, "AppID"))->valueint;
+				Game.Name = (cJSON_GetObjectItem(jGame, "Name"))->valuestring;
+				Game.Type = (cJSON_GetObjectItem(jGame, "Type"))->valuestring;
+
+				CurrentProfileGames.push_back(Game);
+			}
+
 			CurrentProfileName = ProfileName;
 			LastProfileName = ProfileName;
 		}
@@ -256,41 +258,28 @@ void GLRManager::LoadProfile(const std::string& ProfileName)
 
 void GLRManager::SaveProfile(const std::string& ProfileName)
 {
-	std::basic_string<char> NewProfile = R"({
-)";
+	cJSON *Profile = cJSON_CreateObject();
+	cJSON *GamesList = cJSON_CreateArray();
+	cJSON_AddItemToObject(Profile, "GamesList", GamesList);
 
 	if (!CurrentProfileGames.empty())
 	{
-		NewProfile += R"(	"GamesList":  [)";
-
 		for (int i = 0; i < CurrentProfileGames.size(); i++)
 		{
-			NewProfile += R"(
-			{ "name": ")" + CurrentProfileGames[i].Name + R"(", "AppID":)" + std::to_string(CurrentProfileGames[i].AppID) + R"(, "type": ")" + CurrentProfileGames[i].Type;
+			cJSON *Game = cJSON_CreateObject();
+			cJSON_AddItemToArray(GamesList, Game);
 
-			if (i != CurrentProfileGames.size() - 1)
-			{
-				NewProfile += R"("},)";
-			}
-			else
-			{
-				NewProfile += R"("})";
-			}
+			//Add Name
+			cJSON_AddItemToObject(Game, "Name", cJSON_CreateString(CurrentProfileGames[i].Name.c_str()));
+			cJSON_AddItemToObject(Game, "AppID", cJSON_CreateNumber(CurrentProfileGames[i].AppID));
+			cJSON_AddItemToObject(Game, "Type", cJSON_CreateString(CurrentProfileGames[i].Type.c_str()));
+			
 		}
-		NewProfile += R"(
-		]
-})";
-	}
-	else
-	{
-		NewProfile += R"(	"GamesList":  []
-)";
-		NewProfile += R"(})";
 	}
 
 	//Save what ever we have made modifications to into our json
 	std::ofstream ProfileFile(UserProfilePath + ProfileName + ".json");
-	ProfileFile << NewProfile;
+	ProfileFile << cJSON_Print(Profile);
 	ProfileFile.close();
 
 	//Reload the Profile
