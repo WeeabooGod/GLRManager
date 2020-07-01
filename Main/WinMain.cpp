@@ -247,16 +247,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	bool ShiftKeyDownProfile = false;
     	if (ImGui::Begin("ProfilesTable"))
     	{
-    		//If Key is Selected
-    		if (ImGui::GetIO().KeyShift)
-    		{
-    			ShiftKeyDownProfile = true;
-    		}
-            else
-            {
-	            lastSelectedProfile = -1;
-            }
-
     		static ImGuiTableFlags flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
     		if (ImGui::BeginTable("##table2", 1, flags))
 			{
@@ -278,6 +268,16 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     				ImGui::TableSetColumnIndex(0);
 		    		if (ImGui::Selectable(GLRManager.ProfileGetGameNameOfIndex(i).c_str(), selectedProfile[i] == i, ImGuiSelectableFlags_SpanAllColumns))
 		    		{
+		    			//If Key is Selected
+    					if (ImGui::GetIO().KeyShift)
+    					{
+    						ShiftKeyDownProfile = true;
+    					}
+			            else
+			            {
+				            lastSelectedProfile = -1;
+			            }
+		    			
 		    			ImGui::Spacing();
 		    			if (ShiftKeyDownProfile && lastSelectedProfile != -1)
 		    			{
@@ -594,16 +594,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     	bool ShiftKeyDown = false;
     	if (ImGui::Begin("GamesTable"))
     	{
-    		//If Key is Selected
-    		if (ImGui::GetIO().KeyShift)
-    		{
-    			ShiftKeyDown = true;
-    		}
-            else
-            {
-	            lastSelected = -1;
-            }
-
     		static ImGuiTableFlags flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersHOuter | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
     		if (ImGui::BeginTable("##table1", 3, flags))
 			{
@@ -628,6 +618,15 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     				ImGui::TableSetColumnIndex(0);
 		    		if (ImGui::Selectable(GLRManager.GetGameAppIDDOfIndex(i).c_str(), selected[i] == i, ImGuiSelectableFlags_SpanAllColumns))
 		    		{
+		    			//If Key is Selected
+    					if (ImGui::GetIO().KeyShift)
+    					{
+    						ShiftKeyDown = true;
+    					}
+			            else
+			            {
+				            lastSelected = -1;
+			            }
 		    			ImGui::Spacing();
 		    			if (ShiftKeyDown && lastSelected != -1)
 		    			{
