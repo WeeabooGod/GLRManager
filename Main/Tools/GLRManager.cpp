@@ -268,7 +268,7 @@ void GLRManager::SaveProfile(const std::string& ProfileName)
 		{
 			cJSON *Game = cJSON_CreateObject();
 			cJSON_AddItemToArray(GamesList, Game);
-
+			
 			//Add Name
 			cJSON_AddItemToObject(Game, "Name", cJSON_CreateString(CurrentProfileGames[i].Name.c_str()));
 			cJSON_AddItemToObject(Game, "AppID", cJSON_CreateNumber(CurrentProfileGames[i].AppID));

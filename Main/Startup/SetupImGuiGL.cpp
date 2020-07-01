@@ -3,8 +3,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../IMGui/stb_image.h"
 
-#include "../IMGui/imgui_freetype.h"
-
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
@@ -58,11 +56,7 @@ ImguiOpenGL::ImguiOpenGL(const std::string& programName)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
-    io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto-Medium.ttf",16.0f);
-	io.Fonts->AddFontFromFileTTF("Resources/Fonts/Cousine-Regular.ttf", 15.0f);
-	io.Fonts->AddFontFromFileTTF("Resources/Fonts/DroidSans.ttf", 16.0f);
-	io.Fonts->AddFontFromFileTTF("Resources/Fonts/ProggyTiny.ttf", 10.0f);
-	io.Fonts->AddFontDefault();
+	io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto-Medium.ttf",16.0);
 
 	io.IniFilename = "Resources/DockConfig.ini";
 
@@ -81,6 +75,14 @@ void ImguiOpenGL::SetupImGuiFrame()
 	
 	//Freetype init
 	FreetypeInit();
+
+	//Once the thread Update Atlas Rebuild we need to flush the old data and create a new one
+	if (FlushOldAtlas == true)
+	{
+		ImGui_ImplOpenGL3_DestroyDeviceObjects();
+	    ImGui_ImplOpenGL3_CreateDeviceObjects();
+		FlushOldAtlas = false;
+	}
 	
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -121,26 +123,67 @@ void ImguiOpenGL::CleanupImGuiGL()
     glfwTerminate();
 }
 
-void ImguiOpenGL::FreetypeInit()
+
+void ImguiOpenGL::UpdateFontAtlasThread(std::atomic_bool& done)
 {
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	
+	ImFontConfig config;
+	config.MergeMode = true;
+	auto* NewFonts = new ImFontAtlas;
+	NewFonts->AddFontFromFileTTF("Resources/Fonts/Roboto-Medium.ttf",16.0);
+	NewFonts->AddFontFromFileTTF("Resources/Fonts/NotoSerifCJKjp-Medium.otf",16.0f, &config, io.Fonts->GetGlyphRangesJapanese());
+	NewFonts->AddFontFromFileTTF("Resources/Fonts/NotoSerifCJKkr-Medium.otf",16.0f, &config, io.Fonts->GetGlyphRangesKorean());
+	NewFonts->AddFontFromFileTTF("Resources/Fonts/NotoSerifCJKsc-Medium.otf",16.0f, &config, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+	NewFonts->AddFontFromFileTTF("Resources/Fonts/NotoSerifCJKtc-Medium.otf",16.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
+	NewFonts->Build();
+
 	//Freetype init
-	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->TexGlyphPadding = 1;
+	NewFonts->TexGlyphPadding = 1;
 	unsigned int FontsFlags;
 	
 	FontsFlags = ImGuiFreeType::ForceAutoHint;
 	//FontsFlags |= ImGuiFreeType::Bold;
 	
-	for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
+	for (int n = 0; n < NewFonts->ConfigData.Size; n++)
 	{
-		auto* font_config = static_cast<ImFontConfig*>(&io.Fonts->ConfigData[n]);
+		auto* font_config = static_cast<ImFontConfig*>(&NewFonts->ConfigData[n]);
 		font_config->RasterizerMultiply = 1.0f;
 		font_config->RasterizerFlags = FontsFlags;
 	}
-	ImGuiFreeType::BuildFontAtlas(io.Fonts, FontsFlags);
+	ImGuiFreeType::BuildFontAtlas(NewFonts, FontsFlags);
 
-	ImGui_ImplOpenGL3_DestroyDeviceObjects();
-    ImGui_ImplOpenGL3_CreateDeviceObjects();
+	if (io.Fonts)
+		io.Fonts = NewFonts;
+
+	done = true;
+	FlushOldAtlas = true;
+}
+
+
+void ImguiOpenGL::FreetypeInit()
+{
+	if (Freetype.UpdateRebuild())
+	{
+		//Freetype init
+		ImGuiIO& io = ImGui::GetIO();
+		io.Fonts->TexGlyphPadding = 1;
+		unsigned int FontsFlags;
+		
+		FontsFlags = ImGuiFreeType::ForceAutoHint;
+		//FontsFlags |= ImGuiFreeType::Bold;
+		
+		for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
+		{
+			auto* font_config = static_cast<ImFontConfig*>(&io.Fonts->ConfigData[n]);
+			font_config->RasterizerMultiply = 1.0f;
+			font_config->RasterizerFlags = FontsFlags;
+		}
+		ImGuiFreeType::BuildFontAtlas(io.Fonts, FontsFlags);
+
+		ImGui_ImplOpenGL3_DestroyDeviceObjects();
+	    ImGui_ImplOpenGL3_CreateDeviceObjects();
+	}
 }
 
 GLFWwindow* ImguiOpenGL::GetWindow() const

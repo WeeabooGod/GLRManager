@@ -11,6 +11,9 @@
 //Final smaller stuff required as well
 #include <shellapi.h>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <chrono>
 
 static void HelpMarker(const char* desc)
 {
@@ -76,14 +79,25 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	
 	//Search words for use in Steam.DB Searching
 	std::string SearchWords;
-	
+
+	//Set up Fond Rebuilding Thread
+    std::atomic_bool FontRebuildDone = false;
+    std::thread BuildFont(&ImguiOpenGL::UpdateFontAtlasThread, &ImguiManager, std::ref(FontRebuildDone));
+
     // Main loop
     while (!glfwWindowShouldClose(ImguiManager.GetWindow()))
     {
+    	//UTF8 fonts for other stuff like chinese and japanese characters
+    	if (FontRebuildDone)
+    	{
+    		BuildFont.join();
+    		FontRebuildDone = false;
+    	}
+	
     	//Did we officially open the pop up and begin search? If so, fucking do it then
     	if (BeginSearch == true && StartedSearch == false)
     	{
-    		    //Initiate a browser search based on our search keys.
+    		    //Initiate a browser search based on our search keys. So far Ultralight cannot be threaded
 		        GLRBrowser.SearchSteamDB(SearchWords);
 	            
 		        //Give our list to our GLRManager
@@ -156,7 +170,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         }
 
         //Show Demo Window
-        //ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
 
         //render your GUI
 
@@ -788,6 +802,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 	//Make sure we properly write all of our vairables back into our config.
     GLRManager.WriteToConfig();
+
+	//Make sure its done before we close
+	if (BuildFont.joinable())
+		BuildFont.join();
 	
     return 0;
 }

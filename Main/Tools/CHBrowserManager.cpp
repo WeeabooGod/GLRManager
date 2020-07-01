@@ -118,6 +118,16 @@ std::vector<Game> HeadlessBrowserManager::GetList()
 		//Set the Name
 		Temp.Name = GetStringFromJSString(JSValueToStringCopy(GLRBrowserView->js_context(), AppName, nullptr));
 		Temp.Name = Temp.Name.substr(0, Temp.Name.find('\0'));
+
+		//Special Character Replacement
+		//size_t place = Temp.Name.find(std::string("–"));
+		//if (place != std::string::npos)
+		//{
+		//	std::string newname = Temp.Name.substr(0, place);
+		//	newname += "-";
+		//	Temp.Name = newname + Temp.Name.substr(place + 3, Temp.Name.size() - 1);
+		//	
+		//}
 		
 		//Add it to our list
 		TempList.emplace_back(Temp);
