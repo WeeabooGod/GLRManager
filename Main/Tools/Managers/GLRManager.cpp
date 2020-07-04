@@ -104,12 +104,6 @@ void GLRManager::SetGreenlumaPath(std::string Path)
 {
 	replace(Path.begin(), Path.end(), '\\', '/');
 	GreenlumaPath = Path;
-
-	if (!DoesFileExist(GreenlumaPath + "/AppList"))
-	{
-		_mkdir(std::string(GreenlumaPath + "/AppList").c_str());
-	}
-
 	WriteToConfig();
 }
 
@@ -418,6 +412,12 @@ void GLRManager::AppendGameList(std::vector<Game> GeneratedList)
 
 void GLRManager::GenerateAppIDList()
 {
+	//Does the Applist directory even exist, if not create it, this will allow the next code to not crash
+	if (!DoesFileExist(GreenlumaPath + "/AppList"))
+	{
+		_mkdir(std::string(GreenlumaPath + "/AppList").c_str());
+	}
+
 	//Remove any and all existing files that are within the directory
 	for (const auto & entry : std::filesystem::directory_iterator(GreenlumaPath + "/AppList/"))
 	{
