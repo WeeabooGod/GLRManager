@@ -30,6 +30,61 @@ static void LaunchGreenLuma(GLRManager& GLRManager)
 	ShellExecute(nullptr, "open", (GLRManager.GetGreenlumaPath() + "/DLLInjector.exe").c_str(), nullptr, GLRManager.GetGreenlumaPath().c_str(), 0);
 }
 
+//This lets me call the NewProfilePop up from multiple places
+static void NewProfilePopUp(GLRManager& GLRManager, std::vector<Game>& SelectedGames, std::vector<int>& selected, std::vector<Game>& SelectedProfileGames, std::vector<int>& selectedProfile, static int& currentProfileIndex, bool& AlsoAddGames)
+{
+    if (ImGui::BeginPopupModal("NewProfile", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Spacing();
+
+        static char pathInput[1024];
+
+        ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3.0f);
+        ImGui::InputTextWithHint("", "Profile Name", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
+        ImGui::Separator();
+        ImGui::Spacing();
+        if (ImGui::Button("Confirm"))
+        {
+            std::string text = pathInput;
+
+            //Only Confirm if we have input
+            if (!text.empty())
+            {
+                //Close Current Popup
+                ImGui::CloseCurrentPopup();
+
+                //Clear existing list, save new list which auto reloads, along with saving the current selection to our Config
+                GLRManager.ClearProfileGames();
+                GLRManager.SaveProfile(text);
+                GLRManager.GetProfilesInDirectory();
+                GLRManager.WriteToConfig();
+
+                currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
+
+                //Clear the Selection and Profile Games
+                SelectedProfileGames.clear();
+                selectedProfile.clear();
+
+                //If the user presssed Add Games to an empty Profile, we need to add those games now for convience sake.
+                if (AlsoAddGames == true)
+                {
+                    AddGamesToList(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile);
+                }
+
+                AlsoAddGames = false;
+            }
+        }
+        ImGui::SameLine(((ImGui::GetIO().DisplaySize.x / 3.0f) - ImGui::CalcTextSize("Cancel").x * 1.05f));
+        //We are done
+        if (ImGui::Button("Cancel"))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	//This will be our browser for use of webscraping
@@ -173,57 +228,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 if (!ImGui::IsPopupOpen("NewProfile"))
     				ImGui::OpenPopup("NewProfile");
             }
-    		
-    		if (ImGui::BeginPopupModal("NewProfile", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Spacing();
-            	
-                static char pathInput[1024];
-            	
-                ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3.0f);
-                ImGui::InputTextWithHint("", "Profile Name", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
-            	ImGui::Separator();
-	            ImGui::Spacing();
-            	if (ImGui::Button("Confirm"))
-            	{
-            		std::string text = pathInput;
-
-            		//Only Confirm if we have input
-            		if (!text.empty())
-            		{
-            			//Close Current Popup
-            			ImGui::CloseCurrentPopup();
-
-            			//Clear existing list, save new list which auto reloads, along with saving the current selection to our Config
-            			GLRManager.ClearProfileGames();
-            			GLRManager.SaveProfile(text);
-            			GLRManager.GetProfilesInDirectory();
-            			GLRManager.WriteToConfig();
-
-            			currentProfileIndex = GLRManager.GetProfileIndexOfNamed(GLRManager.GetCurrentProfileName());
-
-            			//Clear the Selection and Profile Games
-            			SelectedProfileGames.clear();
-						selectedProfile.clear();
-
-            			//If the user presssed Add Games to an empty Profile, we need to add those games now for convience sake.
-            			if (AlsoAddGames == true)
-            			{
-            				AddGamesToList(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile);
-            			}
-            			
-            			AlsoAddGames = false;
-            		}
-            	}
-            	ImGui::SameLine(((ImGui::GetIO().DisplaySize.x / 3.0f) - ImGui::CalcTextSize("Cancel").x * 1.05f));
-            	//We are done
-                if (ImGui::Button("Cancel"))
-                {
-					ImGui::CloseCurrentPopup();
-                }
-            	
-                ImGui::EndPopup();
-            }
+            NewProfilePopUp(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile, currentProfileIndex, AlsoAddGames);
     		
     		ImGui::SameLine(); ImGui::Spacing(); ImGui::SameLine();
     		ImGui::SameLine();
@@ -689,39 +694,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
                 	AlsoAddGames = true;
                 }
     		}
+            NewProfilePopUp(GLRManager, SelectedGames, selected, SelectedProfileGames, selectedProfile, currentProfileIndex, AlsoAddGames);
         	ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize("Settings").x * 1.3f));
         	if (ImGui::Button("Settings"))
         	{
         		if (!ImGui::IsPopupOpen("ChangeSettings"))
     				ImGui::OpenPopup("ChangeSettings");
         	}
-
-            if (ImGui::BeginPopupModal("ChangeSettings", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Text("Current Greenluma Directory");
-            	static char newdirectory[1024];
-            	ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3);
-            	ImGui::InputTextWithHint("", GLRManager.GetGreenlumaPath().c_str(), newdirectory, IM_ARRAYSIZE(newdirectory), ImGuiInputTextFlags_None);
-            	ImGui::Separator();
-                ImGui::Spacing();
-            	if(ImGui::Button("Change"))
-    			{
-                    std::string GLRPath = newdirectory;
-                	GLRPath += "/DLLInjector.exe";
-                	
-                    if (DoesFileExist(GLRPath))
-                    {
-	                    GLRManager.SetGreenlumaPath(newdirectory);
-                    }
-    			}
-            	ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Close").x * 1.5f);
-            	if(ImGui::Button("Close"))
-    			{
-    				ImGui::CloseCurrentPopup();
-    			}
-
-            	ImGui::EndPopup();
-            }
         	
 			ImGui::End();
     	}

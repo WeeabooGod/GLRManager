@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "../Helpers.h"
-
 GLRManager::GLRManager()
 {
 	//Init our profile, therefore we need to get the Local Appdata Location, and if everything is valid, do stuff
@@ -105,6 +104,12 @@ void GLRManager::SetGreenlumaPath(std::string Path)
 {
 	replace(Path.begin(), Path.end(), '\\', '/');
 	GreenlumaPath = Path;
+
+	if (!DoesFileExist(GreenlumaPath + "/AppList"))
+	{
+		_mkdir(std::string(GreenlumaPath + "/AppList").c_str());
+	}
+
 	WriteToConfig();
 }
 

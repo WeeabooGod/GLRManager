@@ -14,7 +14,7 @@ class GLRManager
 
 	//Default values when no Config exists, can be changed anyways
 	std::string ProgramName = "Greenluma Reborn Manager";
-	std::string ProgramVersion = "1.0.5";
+	std::string ProgramVersion = "1.0.6";
 	std::string GreenlumaPath = "";
 	std::string LastProfileName = "";
 
