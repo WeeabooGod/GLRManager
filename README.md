@@ -21,3 +21,5 @@ On the right is the profile manager. Create profiles and add games to the list. 
 
 # How to build
 I use premake5 to generate visual studio files. You should be able to just run the GenerateBuildFiles.bat and create a build folder for your version of visual studio.
+
+Afterwards you should be able to load it up in Visual Studio Community (Or Others) with the solution file and build it.
