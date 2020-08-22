@@ -12,6 +12,9 @@ https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-d
 
 x64 seems to be what is required based on testing.
 
+# How to install
+Simply unzip the release into any manner of folder/directory.
+
 # How to use
 If you come from using ImaniiTy Greenluma Reborn Manager, you might find it to function quite similarily, just no longer with python.
 
