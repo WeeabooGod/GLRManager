@@ -14,7 +14,7 @@ class GLRManager
 
 	//Default values when no Config exists, can be changed anyways
 	std::string ProgramName = "Greenluma Reborn Manager";
-	std::string ProgramVersion = "1.0.6";
+	std::string ProgramVersion = "1.1.0";
 	std::string GreenlumaPath = "";
 	std::string LastProfileName = "";
 
@@ -32,17 +32,18 @@ class GLRManager
 
 public:
 	GLRManager();
-	
-	cJSON* GetJSONFile(const std::string& Path);
-	void WriteToConfig();
 
-	//Get Setters for MainProgam
-	std::string GetProgramName();
-	std::string GetGreenlumaPath();
+	static cJSON* GetJSONFile(const std::string& Path);
+	void WriteToConfig() const;
+
+	//Get Setters for Main Program
+	std::string GetProgramName() const;
+	std::string GetGreenlumaPath() const;
+	std::string GetProgramVersion() const;
 	void SetGreenlumaPath(std::string Path);
 
-	int GetGameListSize();
-	int GetProfileGameListSize();
+	int GetGameListSize() const;
+	int GetProfileGameListSize() const;
 	
 	std::string GetGameNameOfIndex(int index);
 	std::string GetGameAppIDDOfIndex(int index);
@@ -62,13 +63,13 @@ public:
 	void SetProfileGames(const std::vector<Game>& GameList);
 	void RemoveProfileGames(const std::vector<Game>& GameList);
 	void ClearProfileGames();
-	std::vector<Game> GetProfileGames();
+	std::vector<Game> GetProfileGames() const;
 	
 	std::string GetProfileNameOfIndex(int index);
 	int GetProfileIndexOfNamed(std::string name);
-	std::string GetCurrentProfileName();
+	std::string GetCurrentProfileName() const;
 	
-	int GetNumberOfProfiles();
+	int GetNumberOfProfiles() const;
 	
 	void GetProfilesInDirectory();
 	
@@ -76,6 +77,6 @@ public:
 
 	void GenerateAppIDList();
 
-	int GetAppListLimit() { return AppListLimit; };
+	int GetAppListLimit() const { return AppListLimit; };
 
 };

@@ -73,7 +73,7 @@ cJSON* GLRManager::GetJSONFile(const std::string& Path)
 	return cJSON_Parse(FileContents.c_str());
 }
 
-void GLRManager::WriteToConfig()
+void GLRManager::WriteToConfig() const
 {
     //Json Object, our "File" so to speak
     cJSON* jConfig = cJSON_CreateObject();
@@ -90,14 +90,19 @@ void GLRManager::WriteToConfig()
 	ConfigFile.close();
 }
 
-std::string GLRManager::GetProgramName()
+std::string GLRManager::GetProgramName() const
 {
     return ProgramName;
 }
 
-std::string GLRManager::GetGreenlumaPath()
+std::string GLRManager::GetGreenlumaPath() const
 {
     return GreenlumaPath;
+}
+
+std::string GLRManager::GetProgramVersion() const
+{
+	return ProgramVersion;
 }
 
 void GLRManager::SetGreenlumaPath(std::string Path)
@@ -108,12 +113,12 @@ void GLRManager::SetGreenlumaPath(std::string Path)
 }
 
 
-int GLRManager::GetGameListSize()
+int GLRManager::GetGameListSize() const
 {
 	return static_cast<int>(GamesList.size());
 }
 
-int GLRManager::GetProfileGameListSize()
+int GLRManager::GetProfileGameListSize() const
 {
 	return static_cast<int>(CurrentProfileGames.size());
 }
@@ -342,7 +347,7 @@ void GLRManager::ClearProfileGames()
 	CurrentProfileGames.clear();
 }
 
-std::vector<Game> GLRManager::GetProfileGames()
+std::vector<Game> GLRManager::GetProfileGames() const
 {
 	return CurrentProfileGames;
 }
@@ -367,12 +372,12 @@ int GLRManager::GetProfileIndexOfNamed(std::string name)
 	return -1;
 }
 
-std::string GLRManager::GetCurrentProfileName()
+std::string GLRManager::GetCurrentProfileName() const
 {
 	return CurrentProfileName;
 }
 
-int GLRManager::GetNumberOfProfiles()
+int GLRManager::GetNumberOfProfiles() const
 {
 	return static_cast<int>(ProfileNamesList.size());
 }
@@ -396,7 +401,7 @@ void GLRManager::GetProfilesInDirectory()
 }
 
 //Function for Sort Below
-bool SortByAppIDAcending(const Game& lhs, const Game& rhs)
+bool SortByAppIDAscending(const Game& lhs, const Game& rhs)
 {
 	return lhs.AppID < rhs.AppID;
 }

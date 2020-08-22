@@ -31,7 +31,7 @@ static void LaunchGreenLuma(GLRManager& GLRManager)
 }
 
 //This lets me call the NewProfilePop up from multiple places
-static void NewProfilePopUp(GLRManager& GLRManager, std::vector<Game>& SelectedGames, std::vector<int>& selected, std::vector<Game>& SelectedProfileGames, std::vector<int>& selectedProfile, static int& currentProfileIndex, bool& AlsoAddGames)
+static void NewProfilePopUp(GLRManager& GLRManager, std::vector<Game>& SelectedGames, std::vector<int>& selected, std::vector<Game>& SelectedProfileGames, std::vector<int>& selectedProfile, int& currentProfileIndex, bool& AlsoAddGames)
 {
     if (ImGui::BeginPopupModal("NewProfile", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -94,7 +94,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	GLRManager GLRManager;
 
     //Setup the GL
-    ImguiOpenGL ImguiManager(GLRManager.GetProgramName());
+    ImguiOpenGL ImguiManager(GLRManager.GetProgramName() + " " + GLRManager.GetProgramVersion());
 
 	//Vairables used within the loops
     std::vector<Game> SelectedGames; 	  //A list of GameAPPID we would have selected
@@ -408,6 +408,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             	if (steam == 0)
             	{
             	    LaunchGreenLuma(GLRManager);
+            		
+                    //Close Program, no longer needed
+                    glfwSetWindowShouldClose(ImguiManager.GetWindow(), true);
                 }
                 else
                 {
@@ -439,14 +442,19 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        		
 	        		LaunchGreenLuma(GLRManager);
 	        		ImGui::CloseCurrentPopup();
+	        		
+                    //Close Program, no longer needed
+                    glfwSetWindowShouldClose(ImguiManager.GetWindow(), true);
 				}
 
+    			
 	        	ImGui::EndPopup();
             }
     		
     		ImGui::SameLine();
     		ImGui::PushID(1);
     		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+    		//Generate Applist is stil there for those who don't wish to trust my program in launching steam, so this atleast generates the applist, whereas then the user can launch GLR manually.
     		if (ImGui::Button("Generate AppID List"))
     		{
     		    if (GLRManager.GetProfileGameListSize() != 0 && GLRManager.GetProfileGameListSize() <= GLRManager.GetAppListLimit())
@@ -701,6 +709,38 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         		if (!ImGui::IsPopupOpen("ChangeSettings"))
     				ImGui::OpenPopup("ChangeSettings");
         	}
+
+            if (ImGui::BeginPopupModal("ChangeSettings", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Current Greenluma Directory");
+                static char newdirectory[1024];
+                ImGui::SetNextItemWidth(ImGui::GetIO().DisplaySize.x / 3);
+                ImGui::InputTextWithHint("", GLRManager.GetGreenlumaPath().c_str(), newdirectory, IM_ARRAYSIZE(newdirectory), ImGuiInputTextFlags_None); ImGui::SameLine();
+                if (ImGui::Button("Find Path"))
+                {
+                    std::string filepath = BrowseForFolder();
+                    strcpy_s(newdirectory, filepath.c_str());
+                }
+                ImGui::Separator();
+                ImGui::Spacing();
+                if (ImGui::Button("Change"))
+                {
+                    std::string GLRPath = newdirectory;
+                    GLRPath += "/DLLInjector.exe";
+
+                    if (DoesFileExist(GLRPath))
+                    {
+                        GLRManager.SetGreenlumaPath(newdirectory);
+                    }
+                }
+                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Close").x * 1.5f);
+                if (ImGui::Button("Close"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
         	
 			ImGui::End();
     	}
