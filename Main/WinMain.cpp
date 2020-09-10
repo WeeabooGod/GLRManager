@@ -504,7 +504,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.983f);
         	ImGui::InputTextWithHint("", "Search for Game APPID", pathInput, IM_ARRAYSIZE(pathInput), ImGuiInputTextFlags_None);
         	ImGui::Spacing();
-	        if (ImGui::Button("Search"))
+	        if (ImGui::Button("Search") || (ImGui::GetIO().KeysDown[GLFW_KEY_ENTER] && !std::string(pathInput).empty()))
 	        {
 		        std::string input = pathInput;
 
