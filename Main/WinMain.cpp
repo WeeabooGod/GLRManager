@@ -490,6 +490,15 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	        }
     		ImGui::PopStyleColor(1);
     		ImGui::PopID();
+
+            ImGui::SameLine();
+            if (ImGui::Button("CreamAPI"))
+            {
+                if (GLRManager.GetProfileGameListSize() != 0)
+                {
+                    GLRManager.GenerateListCreamAPI();
+                }
+            }
     		
 			ImGui::End();
     	}

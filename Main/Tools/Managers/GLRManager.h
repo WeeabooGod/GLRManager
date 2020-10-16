@@ -79,4 +79,8 @@ public:
 
 	int GetAppListLimit() const { return AppListLimit; };
 
+
+	//This is a temp thing for CreamAPI, to use the same method to generate a copiable list to put into the cream_api.ini
+	void GenerateListCreamAPI();
+
 };

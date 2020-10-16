@@ -438,3 +438,21 @@ void GLRManager::GenerateAppIDList()
 		ProfileFile.close();
 	}
 }
+
+void GLRManager::GenerateListCreamAPI()
+{
+	//Sort the game list
+	std::sort(CurrentProfileGames.begin(), CurrentProfileGames.end(), SortByAppIDAscending);
+
+	//Open and Create a File
+	std::ofstream ProfileFile(GreenlumaPath + "/CreamAPIList.txt");
+	for (auto& CurrentProfileGame : CurrentProfileGames)
+	{
+		ProfileFile << CurrentProfileGame.AppID;
+		ProfileFile << "=";
+		ProfileFile << CurrentProfileGame.Name;
+		ProfileFile << std::endl;
+	}
+
+	ProfileFile.close();
+}
