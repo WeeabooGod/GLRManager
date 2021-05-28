@@ -14,11 +14,12 @@ class GLRManager
 
 	//Default values when no Config exists, can be changed anyways
 	std::string ProgramName = "Greenluma Reborn Manager";
-	std::string ProgramVersion = "1.1.1";
+	std::string ProgramVersion = "1.1.2";
 	std::string GreenlumaPath = "";
 	std::string LastProfileName = "";
 
-	int AppListLimit = 137;
+	//Based on Greenluma 2020 1.1.9
+	int AppListLimit = 142;
 
 	//Lists of Games on Search
 	std::vector<Game> GamesList;
