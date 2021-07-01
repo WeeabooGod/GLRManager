@@ -1,4 +1,4 @@
-# Currently
+# Currently not working
 SteamDB updated their website along with that, added Cloudflare. The use of Cloudflare made webscraping a bit more difficult. I have opted to take my time in solving this issue, so you can either go with another manager, or perhaps use this browser plugin:
 
 https://github.com/nadia2436i/GetDLCInfoFromSteamDB2
