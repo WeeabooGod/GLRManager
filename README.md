@@ -1,5 +1,5 @@
-# Currently Not Working
-SteamDB updated their website and TOS to forbid webscraping (or could have been forbidden this entire time). Along with that, the use of Cloudflare made webscraping a bit more difficult. I have opted to abandon my manager all together, as now it seems easier to just use tools like:
+# Currently
+SteamDB updated their website along with that, added Cloudflare. The use of Cloudflare made webscraping a bit more difficult. I have opted to take my time in solving this issue, so you can either go with another manager, or perhaps use this browser plugin:
 
 https://github.com/nadia2436i/GetDLCInfoFromSteamDB2
 
