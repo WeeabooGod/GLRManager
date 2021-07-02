@@ -33,16 +33,32 @@ public:
   /// The various KeyEvent types.
   ///
   enum Type {
-    /// Key-Down type
+    ///
+    /// Key-Down event type. (Does not trigger accelerator commands in WebCore)
+    ///
+    /// @NOTE: You should probably use RawKeyDown instead when a physical key
+    ///        is pressed. This member is only here for historic compatibility
+    ///        with WebCore's key event types.
+    ///
     kType_KeyDown,
 
-    /// Key-Up type
+    ///
+    /// Key-Up event type. Use this when a physical key is released.
+    ///
     kType_KeyUp,
 
-    /// Raw Key-Down type
+    ///
+    /// Raw Key-Down type. Use this when a physical key is pressed.
+    ///
+    /// @NOTE: You should use RawKeyDown for physical key presses since it
+    ///        allows WebCore to do additional command translation.
+    ///
     kType_RawKeyDown,
 
-    /// Character input type (this event generates text in input fields)
+    ///
+    /// Character input event type. Use this when the OS generates text from
+    /// a physical key being pressed (eg, WM_CHAR on Windows).
+    ///
     kType_Char,
   };
 
@@ -113,7 +129,7 @@ public:
   /// This is a string identifying the key that was pressed. This can be
   /// generated from the virtual_key_code via the GetKeyIdentifierFromVirtualKeyCode()
   /// utility function. You can find the full list of key identifiers at:
-  ///   <http://www.w3.org/TR/DOM-Level-3-Events/keyset.html>
+  ///   <https://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/keyset.html>
   ///
   String key_identifier;
 

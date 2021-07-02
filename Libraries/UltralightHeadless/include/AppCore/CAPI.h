@@ -9,7 +9,7 @@
 ///
 /// Website: <http://ultralig.ht>
 ///
-/// Copyright (C) 2019 Ultralight, Inc. All rights reserved.
+/// Copyright (C) 2020 Ultralight, Inc. All rights reserved.
 ///
 #ifndef APPCORE_CAPI_H
 #define APPCORE_CAPI_H
@@ -57,6 +57,26 @@ ACExport ULSettings ulCreateSettings();
 ACExport void ulDestroySettings(ULSettings settings);
 
 ///
+/// Set the name of the developer of this app.
+///
+/// This is used to generate a unique path to store local application data
+/// on the user's machine.
+///
+/// Default is "MyCompany"
+///
+ACExport void ulSettingsSetDeveloperName(ULSettings settings, ULString name);
+
+///
+/// Set the name of this app.
+///
+/// This is used to generate a unique path to store local application data
+/// on the user's machine.
+///
+/// Default is "MyApp"
+///
+ACExport void ulSettingsSetAppName(ULSettings settings, ULString name);
+
+///
 /// Set the root file path for our file system, you should set this to the
 /// relative path where all of your app data is.
 ///
@@ -81,6 +101,13 @@ ACExport void ulSettingsSetFileSystemPath(ULSettings settings, ULString path);
 ACExport void ulSettingsSetLoadShadersFromFileSystem(ULSettings settings,
                                                      bool enabled);
 
+///
+/// We try to use the GPU renderer when a compatible GPU is detected.
+///
+/// Set this to true to force the engine to always use the CPU renderer.
+///
+ACExport void ulSettingsSetForceCPURenderer(ULSettings settings,
+                                            bool force_cpu);
 ///
 /// Create the App singleton.
 ///
@@ -261,6 +288,15 @@ ACExport int ulWindowDeviceToPixel(ULWindow window, int val);
 ACExport int ulWindowPixelsToDevice(ULWindow window, int val);
 
 ///
+/// Get the underlying native window handle.
+///
+/// @note This is:  - HWND on Windows
+///                 - NSWindow* on macOS
+///                 - GLFWwindow* on Linux
+///
+ACExport void* ulWindowGetNativeHandle(ULWindow window);
+
+///
 /// Create a new Overlay.
 ///
 /// @param  window  The window to create the Overlay in. (we currently only
@@ -281,6 +317,26 @@ ACExport int ulWindowPixelsToDevice(ULWindow window, int val);
 ///
 ACExport ULOverlay ulCreateOverlay(ULWindow window, unsigned int width,
                                    unsigned int height, int x, int y);
+
+///
+/// Create a new Overlay, wrapping an existing View.
+///
+/// @param  window  The window to create the Overlay in. (we currently only
+///                 support one window per application)
+///
+/// @param  view    The View to wrap (will use its width and height).
+///
+/// @param  x       The x-position (offset from the left of the Window), in
+///                 pixels.
+///
+/// @param  y       The y-position (offset from the top of the Window), in
+///                 pixels.
+///
+/// @note  Each Overlay is essentially a View and an on-screen quad. You should
+///        create the Overlay then load content into the underlying View.
+///
+ACExport ULOverlay ulCreateOverlayWithView(ULWindow window, ULView view, 
+                                           int x, int y);
 
 ///
 /// Destroy an overlay.
@@ -353,6 +409,37 @@ ACExport void ulOverlayFocus(ULOverlay overlay);
 /// Remove keyboard focus.
 ///
 ACExport void ulOverlayUnfocus(ULOverlay overlay);
+
+/******************************************************************************
+ * Platform
+ *****************************************************************************/
+
+///
+/// This is only needed if you are not calling ulCreateApp().
+///
+/// Initializes the platform font loader and sets it as the current FontLoader.
+///
+ACExport void ulEnablePlatformFontLoader();
+
+///
+/// This is only needed if you are not calling ulCreateApp().
+///
+/// Initializes the platform file system (needed for loading file:/// URLs) and
+/// sets it as the current FileSystem.
+///
+/// You can specify a base directory path to resolve relative paths against.
+///
+ACExport void ulEnablePlatformFileSystem(ULString base_dir);
+
+///
+/// This is only needed if you are not calling ulCreateApp().
+///
+/// Initializes the default logger (writes the log to a file).
+///
+/// You should specify a writable log path to write the log to 
+/// for example "./ultralight.log".
+///
+ACExport void ulEnableDefaultLogger(ULString log_path);
 
 #ifdef __cplusplus
 }

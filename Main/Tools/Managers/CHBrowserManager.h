@@ -1,27 +1,39 @@
 #pragma once
-#include <Ultralight/Ultralight.h>
-#include <AppCore/Platform.h>
+#include "AppCore/AppCore.h"
 
 #include "../DataType/GameStruc.h"
 #include <string>
 #include <vector>
 
-class HeadlessBrowserManager : public ultralight::LoadListener
+
+class BrowserManager : public ultralight::LoadListener
 {
+protected:
 	ultralight::RefPtr<ultralight::Renderer> GLRBrowserRenderer;
 	ultralight::RefPtr<ultralight::View> GLRBrowserView;
+	ultralight::RefPtr<ultralight::Session> GLRSession;
+	
 	bool IsDone = false;
 
-public:
-	HeadlessBrowserManager();
-	virtual ~HeadlessBrowserManager();
+	std::vector<Game> GameList;
 
+public:
+	BrowserManager();
+
+	void SearchSteamGames(const std::string& SearchWord);
 	void Run();
-	void SearchSteamDB(const std::string& SearchWord);
+	
 	std::vector<Game> GetList();
 
-	std::string GetStringFromJSString(JSStringRef str);
+	void OnFinishLoading(ultralight::View* caller, uint64_t frame_id, bool is_main_frame, const ultralight::String& url) override;
+	void OnDOMReady(ultralight::View* caller, uint64_t frame_id, bool is_main_frame, const ultralight::String& url) override;
 	
-	void OnFinishLoading(ultralight::View* caller) override;
-	void OnDOMReady(ultralight::View* caller) override;
+	void GenerateDebugImage();
+	
+
+
+
+	//std::string GetStringFromJSString(JSStringRef str);
+	//void OnFinishLoading(ultralight::View* caller, uint64_t frame_id, bool is_main_frame, const ultralight::String& url) override;
+
 };

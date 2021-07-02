@@ -11,7 +11,6 @@ workspace "GLRManager"
 ------------------------------------------------ GLRManager Project 
 project "GLRManager"
     location    "GLRManager"
-    dependson   { "Libraries" }
     kind        "WindowedApp"
     language    "C++"
 	cppdialect 	"C++17"
@@ -24,6 +23,7 @@ project "GLRManager"
 		"Libraries/cUrl/include",
 		"Libraries/Freetype/include",
 		"Libraries/UltralightHeadless/include",
+		"Libraries/Qt 6.2.0/include",
     }
 	
 	libdirs {
@@ -34,6 +34,11 @@ project "GLRManager"
 	}
 
     files {
+		"Libraries/cJSON/**",
+        "Libraries/OpenGL/**",
+        "Libraries/IMGui/**",
+		"Libraries/Freetype/**",
+		"Libraries/UltralightHeadless/**",
         "Main/**.cpp",
 		"Main/**.h",
 		"Main/Tools/**",
@@ -46,7 +51,6 @@ project "GLRManager"
         defines         { "_DEBUG", "CURL_STATICLIB", "_CRT_SECURE_NO_WARNINGS",}
         symbols         "on"
 		links {
-			"Libraries",
 			"opengl32",
 			"glfw3",
 			"Normaliz",
@@ -67,7 +71,6 @@ project "GLRManager"
 		runtime "release"
 		symbols         "on"
 		links {
-			"Libraries",
 			"opengl32",
 			"glfw3",
 			"Normaliz",
@@ -81,33 +84,3 @@ project "GLRManager"
 			"WebCore",
 			"AppCore",
 		}
------------------------------------------------- Libraries Project
-project "Libraries"
-    location    "GLRManager/Libraries"
-    kind        "StaticLib"
-	language    "C++"
-	
-    includedirs {
-		"Libraries/cJSON",
-		"Libraries/OpenGL/GLFW/include",
-		"Libraries/OpenGL/GL/include",
-		"Libraries/Freetype/include",
-		"Libraries/UltralightHeadless/include",
-    }
-	
-	libdirs {
-		"Libraries/OpenGL/GLFW/lib-vc2019",
-		"Libraries/Freetype/lib",
-		"Libraries/UltralightHeadless/lib",
-	}
-
-    files {
-		"Libraries/cJSON/**",
-        "Libraries/OpenGL/**",
-        "Libraries/IMGui/**",
-		"Libraries/Freetype/**",
-		"Libraries/UltralightHeadless/**",
-    }
-	
-	filter "configurations:Debug"
-		runtime "debug"

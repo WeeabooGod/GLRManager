@@ -5,7 +5,7 @@
 ///
 /// @author
 ///
-/// This file is a part of Ultralight, a fast, lightweight, HTML UI engine
+/// This file is a part of Ultralight, a next-generation HTML renderer.
 ///
 /// Website: <http://ultralig.ht>
 ///
@@ -37,26 +37,34 @@
 
 
 #if defined(__WIN32__) || defined(_WIN32)
-#  if defined(ULTRALIGHT_IMPLEMENTATION)
-#    define UExport __declspec(dllexport)
+#  if defined(ULTRALIGHT_STATIC_BUILD)
+#    define UExport 
 #  else
-#    define UExport __declspec(dllimport)
+#    if defined(ULTRALIGHT_IMPLEMENTATION)
+#      define UExport __declspec(dllexport)
+#    else
+#      define UExport __declspec(dllimport)
+#    endif
 #  endif
 #define _thread_local __declspec(thread)
 #ifndef _NATIVE_WCHAR_T_DEFINED
 #define DISABLE_NATIVE_WCHAR_T
 #endif
 #else
-#  define UExport __attribute__((visibility("default")))
+#  if defined(ULTRALIGHT_STATIC_BUILD)
+#    define UExport 
+#  else
+#    define UExport __attribute__((visibility("default")))
+#  endif
 #define _thread_local __thread
 #endif
 
 #endif
 
-#define ULTRALIGHT_VERSION "1.2.0"
+#define ULTRALIGHT_VERSION "1.2.1"
 #define ULTRALIGHT_VERSION_MAJOR 1
 #define ULTRALIGHT_VERSION_MINOR 2
-#define ULTRALIGHT_VERSION_PATCH 0
+#define ULTRALIGHT_VERSION_PATCH 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,17 +86,17 @@ UExport uint32_t UltralightVersionPatch();
 ///
 /// Hi there, welcome to the C++ API Reference for Ultralight!
 ///
-/// Ultralight is a fast, lightweight HTML UI engine for desktop apps.
+/// Ultralight is a next-generation HTML renderer for desktop apps and games.
 ///
 /// If this is your first time exploring the API, we recommend
 /// starting with ultralight::Renderer and ultralight::View.
 ///
 ///
 /// @section usefullinks_sec Useful Links
-/// - Home:   <https://ultralig.ht> -- Get the latest binaries
-/// - Docs:   <https://docs.ultralig.ht> -- API overview, code snippets, tutorials and more!
-/// - Slack:  <http://chat.ultralig.ht/> -- Stuck? Have questions? Come chat with us!
-/// - GitHub: <https://github.com/ultralight-ux/ultralight> -- Report issues and browse code
+/// - Home:     <https://ultralig.ht> -- Get the latest binaries
+/// - Docs:     <https://docs.ultralig.ht> -- API overview, code snippets, tutorials and more!
+/// - Discord:  <http://chat.ultralig.ht/> -- Stuck? Have questions? Come chat with us!
+/// - GitHub:   <https://github.com/ultralight-ux/ultralight> -- Report issues and browse code
 ///
 /// @section copyright_sec Copyright
 /// Documentation is Copyright (C) 2020 Ultralight, Inc. All rights reserved.

@@ -6,5 +6,5 @@ struct Game
 	bool operator==(const Game& rhs) const { return this->AppID == rhs.AppID;}
 	unsigned int AppID{};
 	std::string Name;
-	std::string Type;
+	std::string Type = "N/A";
 };

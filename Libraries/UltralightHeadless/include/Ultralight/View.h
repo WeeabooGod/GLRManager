@@ -12,10 +12,10 @@
 /// Copyright (C) 2020 Ultralight, Inc. All rights reserved.
 ///
 #pragma once
-#include <JavaScriptCore/JavaScript.h>
 #include <Ultralight/Defines.h>
 #include <Ultralight/RefPtr.h>
 #include <Ultralight/KeyEvent.h>
+#include <Ultralight/JavaScript.h>
 #include <Ultralight/MouseEvent.h>
 #include <Ultralight/ScrollEvent.h>
 #include <Ultralight/RenderTarget.h>
@@ -26,11 +26,25 @@
 namespace ultralight {
 
 ///
-/// @brief A View is similar to a tab in a browser-- you load web content into
-///	       it and display it however you want. @see Renderer::CreateView
+/// @brief The View class is used to load and display web content.
 ///
-/// @note  The API is currently not thread-safe, all calls must be made on the
-///        main thread.
+/// View is an offscreen web-page container that can be used to display
+/// web-content in your application.
+///
+/// You can load content into a View via View::LoadURL() or View::LoadHTML()
+/// and interact with it via View::FireMouseEvent() and similar API.
+///
+/// When displaying a View, the API is different depending on whether you
+/// are using the CPU renderer or the GPU renderer:
+///
+/// When using the CPU renderer, you would get the underlying pixel-buffer
+/// surface for a View via View::surface().
+///
+/// When using the GPU renderer, you would get the underlying render target
+/// and texture information via View::render_target().
+///
+/// @note  The API is not currently thread-safe, all calls must be made on the
+///        same thread that the Renderer/App was created on.
 ///
 class UExport View : public RefCounted {
 public:
@@ -60,7 +74,7 @@ public:
   virtual bool is_loading() = 0;
 
   ///
-  /// Get the RenderTarget for the View.
+  /// Get the offscreen RenderTarget for the View.
   ///
   /// @note  Only valid when the GPU renderer is enabled in Config.
   ///
@@ -70,11 +84,10 @@ public:
   virtual RenderTarget render_target() = 0;
 
   ///
-  /// Get the Surface for the View (native pixel buffer container).
+  /// Get the offscreen Surface for the View (pixel-buffer container).
   ///
-  /// @note  Only valid when the GPU renderer is disabled in Config.
-  ///
-  ///        (Will return a nullptr when the GPU renderer is enabled.)
+  /// @note  Only valid when the CPU is enabled (will return a nullptr
+  ///        otherwise)
   ///
   ///        The default Surface is BitmapSurface but you can provide your
   ///        own Surface implementation via Platform::set_surface_factory.
@@ -84,7 +97,18 @@ public:
   ///
   /// Load a raw string of HTML, the View will navigate to it as a new page.
   ///
-  virtual void LoadHTML(const String& html) = 0;
+  /// @param  html  The raw HTML string to load.
+  ///
+  /// @param  url   An optional URL for this load (to make it appear as if we
+  ///               we loaded this HTML from a certain URL). Can be used for
+  ///               resolving relative URLs and cross-origin rules.
+  ///
+  /// @param  add_to_history  Whether or not this load should be added to the
+  ///                         session's history (back/forward list).
+  ///
+  virtual void LoadHTML(const String& html,
+    const String& url = "", 
+    bool add_to_history = false) = 0;
 
   ///
   /// Load a URL, the View will navigate to it as a new page.
@@ -106,23 +130,41 @@ public:
   virtual void Resize(uint32_t width, uint32_t height) = 0;
 
   ///
-  /// Get the page's JSContext for use with the JavaScriptCore API
+  /// Acquire the page's JSContext for use with the JavaScriptCore API
   ///
-  /// @note  We expose the entire JavaScriptCore API to users for maximum
-  ///        flexibility. Each page has its own JSContext that gets reset
-  ///        after each page navigation. You should make all your initial
-  ///        JavaScript calls to the page within the DOMReady event,
-  ///        @see ViewListener::OnDOMReady
+  /// @note  You can use the underlying JSContextRef with the JavaScriptCore
+  ///        C API. This allows you to marshall C/C++ objects to/from
+  ///        JavaScript, bind callbacks, and call JS functions directly.
   ///
-  virtual JSContextRef js_context() = 0;
+  /// @note  The JSContextRef gets reset after each page navigation. You
+  ///        should initialize your JavaScript state within the
+  ///        OnWindowObjectReady and OnDOMReady events, @see ViewListener.
+  ///
+  /// @note  This call locks the internal context for the current thread.
+  ///        It will be unlocked when the returned JSContext's ref-count goes
+  ///        to zero. The lock is recursive, you can call this multiple times.
+  ///
+  virtual Ref<JSContext> LockJSContext() = 0;
 
   ///
-  /// Evaluate a raw string of JavaScript and return results as a native
-  /// JavaScriptCore JSValueRef (@see <JavaScriptCore/JSValueRef.h>)
+  /// Helper function to evaluate a raw string of JavaScript and return the
+  /// result as a String.
   ///
-  /// @note  This is just a wrapper for JSEvaluateScript() in JavaScriptCore
+  /// @param  script     A string of JavaScript to evaluate in the main frame.
   ///
-  virtual JSValueRef EvaluateScript(const String& script) = 0;
+  /// @param  exception  A string to store the exception in, if any. Pass a
+  ///                    nullptr if you don't care about exceptions.
+  ///
+  /// @return  Returns the JavaScript result typecast to a String.
+  ///
+  ///
+  /// @note  You do not need to lock the JS context, it is done automatically.
+  ///
+  /// @note  If you need lower-level access to native JavaScript values, you
+  ///        should instead lock the JS context and call JSEvaluateScript() in
+  ///        the JavaScriptCore C API. @see <JavaScriptCore/JSBase.h>
+  ///
+  virtual String EvaluateScript(const String& script, String* exception = nullptr) = 0;
 
   ///
   /// Whether or not we can navigate backwards in history

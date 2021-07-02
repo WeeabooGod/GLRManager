@@ -20,11 +20,8 @@
 namespace ultralight {
 
 ///
-/// @brief  The core of Ultralight. You should initialize it after setting up
-///         your Platform config and drivers.
-///
-/// This singleton class manages the lifetime of all Views (@see View) and
-/// coordinates all painting, rendering, network requests, and event dispatch.
+/// @brief  This singleton manages the lifetime of all Views (@see View) and
+///         coordinates painting, network requests, and event dispatch.
 ///
 /// @note  You don't have to create this instance directly if you use the
 ///        AppCore API. The App class will automatically create a Renderer and
@@ -33,14 +30,32 @@ namespace ultralight {
 class UExport Renderer : public RefCounted {
 public:
   ///
-  /// Create the Renderer singleton. You should set up all your Platform config,
-  /// file-system, and drivers before calling this function. @see Platform
+  /// Create the Ultralight Renderer directly.
+  ///
+  /// Unlike App::Create(), this does not use any native windows for drawing
+  /// and allows you to manage your own runloop and painting. This method is
+  /// recommended for those wishing to integrate the library into a game.
+  ///
+  /// You should set up your Platform config, file-system, font loader, 
+  /// and surface-factories/gpu-drivers before calling this function. 
+  /// (@see <Ultralight/Platform.h>)
+  ///
+  /// At a minimum, you will need to define a FontLoader ahead of time or this
+  /// call will fail. You can use the platform's native FontLoader by calling:
+  /// <pre>
+  ///   /// This function is defined in <AppCore/Platform.h>
+  ///   Platform::instance().set_font_loader(GetPlatformFontLoader());
+  /// </pre>
   ///
   /// @note  You should only create one Renderer per application lifetime.
   ///
-  /// @return  Returns a ref-pointer to a new Renderer instance. You should
-  ///          assign it to either a Ref<Renderer> (non-nullable) or
-  ///          RefPtr<Renderer> (nullable).
+  /// @note: You should not call this if you are using App::Create(), it
+  ///        creates its own renderer and provides default implementations for
+  ///        various platform handlers automatically.
+  ///
+  /// @return  Renderer is ref-counted. This method returns a ref-pointer
+  ///          to a new instance, you should store it in a RefPtr<> to keep
+  ///          the instance alive.
   ///
   static Ref<Renderer> Create();
 
@@ -84,7 +99,8 @@ public:
   ///          (nullable).
   ///
   virtual Ref<View> CreateView(uint32_t width, uint32_t height,
-	                             bool transparent, RefPtr<Session> session) = 0;
+	                             bool transparent, RefPtr<Session> session,
+                               bool force_cpu_renderer = false) = 0;
 
   ///
   /// Update timers and dispatch internal callbacks. You should call this often
@@ -93,7 +109,12 @@ public:
   virtual void Update() = 0;
 
   ///
-  /// Render all active views to display lists and dispatch calls to GPUDriver.
+  /// Render all active views to their respective render-targets/surfaces.
+  ///
+  /// You should call this once per frame (usually in synchrony with the
+  /// monitor's refresh rate).
+  ///
+  /// @note  Views are only repainted if they actually need painting.
   ///
   virtual void Render() = 0;
 
@@ -105,6 +126,7 @@ public:
 
   ///
   /// Print detailed memory usage statistics to the log.
+  /// (@see Platform::set_logger())
   ///
   virtual void LogMemoryUsage() = 0;
 

@@ -105,8 +105,8 @@ class UExport Platform {
   ///
   /// Set the Clipboard (will be used for all clipboard operations)
   ///
-  /// @param  file_system  A user-defined Clipboard implementation, ownership
-  ///                      remains with the caller.
+  /// @param  clipboard  A user-defined Clipboard implementation, ownership
+  ///                    remains with the caller.
   ///
   virtual void set_clipboard(Clipboard* clipboard) = 0;
 

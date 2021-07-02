@@ -1,9 +1,3 @@
-# Currently not working
-SteamDB updated their website along with that, added Cloudflare. The use of Cloudflare made webscraping a bit more difficult. I have opted to take my time in solving this issue, so you can either go with another manager, or perhaps use this browser plugin:
-
-https://github.com/nadia2436i/GetDLCInfoFromSteamDB2
-
-
 # Weeb's Greenluma Reborn Manager
 A C++ variant of the Greenluma Reborn Manager. Uses Imgui for Gui with OpenGL GLFW. Integrated with [Ultralight](https://ultralig.ht/), a Chromium based Headless browser for use of scraping Steam.DB. 
 
